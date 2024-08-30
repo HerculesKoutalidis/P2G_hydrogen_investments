@@ -13,6 +13,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 
 #%%
+#This is a test change
 def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_years):
     #RES input data
     energy_generation_dir = '../models_inputs/RES generation data'
