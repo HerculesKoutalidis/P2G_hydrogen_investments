@@ -12,6 +12,8 @@ import logging
 logging.getLogger().setLevel(logging.DEBUG)
 
 
+#This line was added in branch 2
+
 #%%
 def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_years):
     #RES input data
