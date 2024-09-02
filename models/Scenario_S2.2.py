@@ -373,6 +373,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     H2_storage_av_level = network.stores_t.e['H2 depot'].mean() / network.stores.loc['H2 depot', 'e_nom_opt' ]
     H2_to_NG_energies_av_ratio = (-network.links_t.p1['H2_to_NG']/network.generators_t.p['NG Generator']).mean() # avearge E_H2/H_NG
     H2_average_injection_ratio_per_volume = 1/(2+1/H2_to_NG_energies_av_ratio*(en_density_H2/en_density_ng))
+    H2_total_production_in_tons = -network.links_t.p1['H2_to_NG'].sum()*1000/LHV_H2/1000 #multiplied by 1000 to obtain kWh, divided by LHV to obtain kg of H2, divided by 1000 to obtain tons
 
     #ENVIRONEMNTAL statistics calculations
     GHG_total_emissions_baseline = round(network.loads_t.p['NG load'].sum() * GHG_emissions_per_MWh_NG,3)   #tons of CO2 emitted in the case where 100% of NG demand is covered by NG
@@ -441,6 +442,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     print('H2 storage size (kg): ',H2_storage_capacity_kg,' kg' )
     print('H2 storage av.storage level (%): ', round(H2_storage_av_level*100,2), ' %')
     print('H2 av.injection per volume (%): ', round(H2_average_injection_ratio_per_volume*100,4), ' %')
+    print("H2 total production (tons): ", round(H2_total_production_in_tons,3))
     print('NG energy demand covered by synthetic H2 (fraction):', round(H2_content_of_NG*100,2),'%\n')
 
     print('=======================================')
@@ -466,6 +468,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             'Solar nom.installation(MW)': round(network.generators.loc['solar_provider_PPA','p_nom_opt'],5), 'Solar av.capacity factor(% of p_nom)': round(solar_av_LF*100,2),
             'Electrolysis nominal installation(MW)': round(network.links.T.P_to_H2['p_nom_opt'],4) , 'Electrolysis av.capacity factor(% of p_nom)': round(electrolysis_av_LF*100,5),
             'H2 storage size (kg)': H2_storage_capacity_kg ,'H2 storage av.storage level (%)': round(H2_storage_av_level*100,2), 'H2 av.injection per volume (%)': round(H2_average_injection_ratio_per_volume*100,4) ,
+            'H2 total production (tons):': round(H2_total_production_in_tons,2),
             'NG energy demand covered by synthetic H2 (%)':round(H2_content_of_NG*100,2) ,
             'GHG emissions of baseline (tons CO2 eq.)':GHG_total_emissions_baseline ,'GHG emissions of scenario (% of baseline)': round(GHG_emissions_fraction_of_baseline*100,2),'GHG emissions savings (tons CO2 eq.)': round(GHG_total_emissions_baseline - GHG_total_emissions_scenario,2),
             'Duration of experiment (h)': experiment_duration
