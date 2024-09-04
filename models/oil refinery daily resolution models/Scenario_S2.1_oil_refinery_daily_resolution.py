@@ -16,8 +16,8 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 #%%
 def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_years):
-    #RES input data
-    energy_generation_dir = '../models_inputs/RES generation data'
+    #%%RES input data
+    energy_generation_dir = '../../models_inputs/RES generation data'
     solar_generation_dir, wind_generation_dir = energy_generation_dir + '\\PV generation data' , energy_generation_dir + '\\Wind generation data'
     solar_load_factor_data = pd.read_csv(solar_generation_dir+'\\pv_capacity_factor_timeseries_hourly_10Y.csv')
     wind_load_factor_data = pd.read_csv(wind_generation_dir+'\\wind_capacity_factor_timeseries_hourly_10Y.csv')
@@ -31,19 +31,15 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries), list(wind_load_factor_timeseries)
 
     #Loads input data
-    natural_gas_demand_dir = '../models_inputs/DEPA gas timeseries data'
-    ng_demand_timeseries_data = pd.read_csv(natural_gas_demand_dir+ '//spata_ng_demand_timeseries_hourly.csv')
-    ng_demand_timeseries =  round(ng_demand_timeseries_data['demand(kWh)']/1000 ,2) #convert kWh to MWh
-    ng_demand_timeseries_series = ng_demand_timeseries
-    ng_demand_timeseries = list(ng_demand_timeseries)*n_years
+    h2_demand_timeseries = [99999999 for t in range(365*24)]*n_years # "infinite" demand of H2
 
     #Models Parameters input data
-    input_parameters_dir = '../models_inputs/models_input_parameters'
+    input_parameters_dir = '../../models_inputs/models_input_parameters'
     input_parameters_data = pd.read_csv(input_parameters_dir+'//input_parameters_S2.1.csv')
 
      #%%######################### NETWORK PARAMETERS ########################
     #Generators data
-    LHV_H2 = 0.03333 #LHV of H2 in MWh/kg H2
+    LHV_H2 = 0.0333333 #LHV of H2 in MWh/kg H2
     LHV_NG = 0.0131  #LHV of NG in MWh/kg NG
 
     #Generators data
@@ -69,15 +65,14 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     charge_efficiency, discharge_efficiency, H2_transport_efficiency = 0.99, 0.99, 0.99
 
     #Selling prices data
-    H2_sale_price_per_kg = H2_selling_price_per_kg
+    H2_sale_price_per_kg =    H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / LHV_H2
 
-
-    #Max H2 admixture
-    MHA = input_parameters_data['MHA'][0] #Max H2 admixture
-    en_density_H2, en_density_ng = 3 , 10.167
-    power_ratio =  round(en_density_H2/en_density_ng*MHA/(1-MHA),4) 
-
+    #Minimum H2 production data
+    minimum_hydrogen_yearly_production = 20000 #in tones
+    minimum_hydrogen_yearly_production = minimum_hydrogen_yearly_production *1000*LHV_H2 #times 1000 to obtain kg, divided by LHV to obtain MWh
+    maximum_hydrogen_yearly_production = 30000 #in tones
+    maximum_hydrogen_yearly_production = maximum_hydrogen_yearly_production *1000*LHV_H2 #times 1000 to obtain kg, divided by LHV to obtain MWh
 
     #Environmental/emissions parameters
     wind_generation_CO2_emissions_per_MWh, solar_generation_CO2_emissions_per_MWh = 10, 13
@@ -93,7 +88,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
         #Correct wind and solar power timeseries lengths
         solar_load_factor_timeseries, wind_load_factor_timeseries = solar_load_factor_timeseries[:24*365*simulation_years], wind_load_factor_timeseries[:24*365*simulation_years]
         #Correct NG demand timeseries length
-        ng_demand_timeseries = ng_demand_timeseries[:24*365*simulation_years]
+        h2_demand_timeseries = h2_demand_timeseries[:24*365*simulation_years]
 
 
 
@@ -114,7 +109,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #    network3.add("Carrier", carrier_name, co2_emissions = list(CO2_data[CO2_data['Carrier'] == carrier_name]['Emissions(t/Mwh of primary energy)'])[0])
 
     #Add loads
-    network.add('Load', name= 'NG load', bus = 'Bus NG', p_set = ng_demand_timeseries)
+    network.add('Load', name= 'H2 load', bus = 'Bus NG', p_set = h2_demand_timeseries)
 
     #Add Generators
     network.add(
@@ -197,10 +192,14 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
 
     #%%####### MODEL CORRECTIONS ################################
-    # Add a constraint that guarantees maximum H2 admixture allowed when injecting H2 to the NG grid
-    p_from_pure_NG = model.variables['Generator-p'].sel(Generator = 'NG Generator')
-    p_from_H2 = model.variables['Link-p'].sel(Link = 'H2_to_NG') *H2_transport_efficiency
-    model.add_constraints(p_from_H2   <= power_ratio*p_from_pure_NG ,name="Maximum H2 admixture",)
+    # Add a constraint that guarantees minimum yearly H2 production
+    total_horizon_hydrogen_production = model.variables['Link-p'].loc[:,'H2_to_NG'].sum()* H2_transport_efficiency
+    minimum_hydrogen_horizon_production = minimum_hydrogen_yearly_production*simulation_years
+    model.add_constraints(total_horizon_hydrogen_production   >= minimum_hydrogen_horizon_production, name="Minimum_H2_sim.horizon_production")
+
+    # Add a constraint that guarantees maximum yearly H2 production
+    maximum_hydrogen_horizon_production = maximum_hydrogen_yearly_production*simulation_years
+    model.add_constraints(total_horizon_hydrogen_production   <= maximum_hydrogen_horizon_production, name="Maximum_H2_sim.horizon_production") 
 
 
     #%% ####################### With NPV as objective function #################################
@@ -329,8 +328,6 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
                                 energy_from_wind_generation/total_el_energy_production * network.generators.loc['wind_provider_PPA','marginal_cost'] +
                                 energy_from_solar_generation/total_el_energy_production * network.generators.loc['solar_provider_PPA','marginal_cost'])/1000,3)
 
-    #NG demand covered by synthetic H2 in P2G2 
-    H2_content_of_NG = - network.links_t.p1['H2_to_NG'].sum()/network.loads_t.p_set['NG load'].sum()
 
     #=================PROFITABILITY FOR COMPANY CALCULATIONS (Expenses, Income, Profit) ===========
     #Costs and income for company
@@ -376,13 +373,10 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     H2_storage_capacity_kg = round(network.stores.loc['H2 depot', 'e_nom_opt' ]/LHV_H2 ,2)
     H2_storage_av_level = network.stores_t.e['H2 depot'].mean() / network.stores.loc['H2 depot', 'e_nom_opt' ]
     H2_to_NG_energies_av_ratio = (-network.links_t.p1['H2_to_NG']/network.generators_t.p['NG Generator']).mean() # avearge E_H2/H_NG
-    H2_average_injection_ratio_per_volume = 1/(2+1/H2_to_NG_energies_av_ratio*(en_density_H2/en_density_ng))
-    H2_total_production_in_tons = -network.links_t.p1['H2_to_NG'].sum()/LHV_H2/1000 #divided by LHV to obtain kg of H2, divided by 1000 to obtain tons
+    H2_total_production_in_tons = -network.links_t.p1['H2_to_NG'].sum()/LHV_H2/1000 #multiplied by 1000 to obtain kWh, divided by LHV to obtain kg of H2, divided by 1000 to obtain tons
 
     #ENVIRONEMNTAL statistics calculations
-    GHG_total_emissions_baseline = round(network.loads_t.p['NG load'].sum() * GHG_emissions_per_MWh_NG,3)   #tons of CO2 emitted in the case where 100% of NG demand is covered by NG
-    GHG_total_emissions_scenario = round(network.generators_t.p['NG Generator'].sum() * GHG_emissions_per_MWh_NG,3) #tons of CO2 emitted under optimal solution
-    GHG_emissions_fraction_of_baseline = round(GHG_total_emissions_scenario/GHG_total_emissions_baseline,4)
+
 
     #===============================================================================================
     theoretical_objval =  -round( theoretical_NPV ,2)#round(-(INCOMEv - EXPENSESv),2)#round(marginal_costs + capex_costs,2)
@@ -446,15 +440,12 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     print('Electrolysis av.capacity factor(% of p_nom): ', round(electrolysis_av_LF*100,5),' %')
     print('H2 storage size (kg): ',H2_storage_capacity_kg,' kg' )
     print('H2 storage av.storage level (%): ', round(H2_storage_av_level*100,2), ' %')
-    print('H2 av.injection per volume (%): ', round(H2_average_injection_ratio_per_volume*100,4), ' %')
-    print("H2 total production (tons): ", round(H2_total_production_in_tons,3))         
-    print('NG energy demand covered by synthetic H2 (fraction):', round(H2_content_of_NG*100,2),'%\n')
+    print("H2 total production (tons): ", round(H2_total_production_in_tons,3),'\n')         
+
 
     print('=======================================')
     print('ENVIRONMENTAL')
-    print("GHG emissions of baseline:                 ", GHG_total_emissions_baseline, ' tons CO2 eq.')
-    print("GHG emissions of scenario (% of baseline): ", round(GHG_emissions_fraction_of_baseline*100,2), ' %')
-    print("GHG emissions savings: ", round(GHG_total_emissions_baseline - GHG_total_emissions_scenario,2), ' tons CO2 eq. \n')
+
     
     #%%################## WRITE RESULTS TO CSV #############################
     df = pd.DataFrame()
@@ -471,17 +462,15 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             'Wind nom.installation(MW)': round(network.generators.loc['wind_provider_PPA','p_nom_opt'],5), 'Wind av.capacity factor(% of p_nom)': round(wind_av_LF*100,2),
             'Solar nom.installation(MW)': round(network.generators.loc['solar_provider_PPA','p_nom_opt'],5), 'Solar av.capacity factor(% of p_nom)': round(solar_av_LF*100,2),
             'Electrolysis nominal installation(MW)': round(network.links.T.P_to_H2['p_nom_opt'],4) , 'Electrolysis av.capacity factor(% of p_nom)': round(electrolysis_av_LF*100,5),
-            'H2 storage size (kg)': H2_storage_capacity_kg ,'H2 storage av.storage level (%)': round(H2_storage_av_level*100,2), 'H2 av.injection per volume (%)': round(H2_average_injection_ratio_per_volume*100,4) ,
+            'H2 storage size (kg)': H2_storage_capacity_kg ,'H2 storage av.storage level (%)': round(H2_storage_av_level*100,2), 
             'H2 total production (tons):': round(H2_total_production_in_tons,2),
-            'NG energy demand covered by synthetic H2 (%)':round(H2_content_of_NG*100,2) ,
-            'GHG emissions of baseline (tons CO2 eq.)':GHG_total_emissions_baseline ,'GHG emissions of scenario (% of baseline)': round(GHG_emissions_fraction_of_baseline*100,2),'GHG emissions savings (tons CO2 eq.)': round(GHG_total_emissions_baseline - GHG_total_emissions_scenario,2),
             'Duration of experiment (h)': experiment_duration
             }
 
     # Save the results to csv
     df = pd.DataFrame(data = data)
     df = df.T
-    save_results_dir =  f'S2.1_{simulation_years}Y_hydrogen_price_{H2_sale_price_per_kg}_EUR_per_kg'
+    save_results_dir =  f'S2.1_oil_refinement_{simulation_years}Y_hydrogen_price_{H2_sale_price_per_kg}_EUR_per_kg'
     df.to_csv(save_results_dir)
     print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_selling_price_per_kg}. ===================')
     
