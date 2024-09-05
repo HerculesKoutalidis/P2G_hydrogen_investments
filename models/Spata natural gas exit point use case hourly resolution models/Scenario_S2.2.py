@@ -15,13 +15,13 @@ logging.getLogger().setLevel(logging.DEBUG)
 #%%
 def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_years):
     #%%RES input data
-    energy_generation_dir = '../models_inputs/RES generation data'
-    solar_generation_dir, wind_generation_dir = energy_generation_dir + '\\PV generation data' , energy_generation_dir + '\\Wind generation data'
-    solar_load_factor_data = pd.read_csv(solar_generation_dir+'\\pv_capacity_factor_timeseries_hourly_10Y.csv')
-    wind_load_factor_data = pd.read_csv(wind_generation_dir+'\\wind_capacity_factor_timeseries_hourly_10Y.csv')
+    energy_generation_dir = '../../models_inputs/RES generation data'
+    solar_generation_dir, wind_generation_dir = energy_generation_dir + '/PV generation data' , energy_generation_dir + '/Wind generation data'
+    solar_load_factor_data = pd.read_csv(solar_generation_dir+'/pv_cf_hourly_10Y.csv')
+    wind_load_factor_data = pd.read_csv(wind_generation_dir+'/wind_cf_hourly_10Y.csv')
     solar_load_factor_timeseries, wind_load_factor_timeseries = solar_load_factor_data['capacity_factor'], wind_load_factor_data['capacity_factor']
 
-
+    #%%
     n_years = 10         #n_years is the number of years to which the csv parameters such as capex refer to
     simulation_years = simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
 
@@ -36,7 +36,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     ng_demand_timeseries = list(ng_demand_timeseries)*n_years
 
     #Models Parameters input data
-    input_parameters_dir = '../models_inputs/models_input_parameters'
+    input_parameters_dir = '../../models_inputs/models_input_parameters/hourly resolution Spata pipeline use case'
     input_parameters_data = pd.read_csv(input_parameters_dir+'//input_parameters_S2.2.csv')
 
     #%%######################### NETWORK PARAMETERS ########################

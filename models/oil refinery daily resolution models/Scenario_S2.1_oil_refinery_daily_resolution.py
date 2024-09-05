@@ -12,15 +12,14 @@ import logging
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-#This line was added in branch 2
 
 #%%
 def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_years):
     #%%RES input data
     energy_generation_dir = '../../models_inputs/RES generation data'
-    solar_generation_dir, wind_generation_dir = energy_generation_dir + '\\PV generation data' , energy_generation_dir + '\\Wind generation data'
-    solar_load_factor_data = pd.read_csv(solar_generation_dir+'\\pv_capacity_factor_timeseries_hourly_10Y.csv')
-    wind_load_factor_data = pd.read_csv(wind_generation_dir+'\\wind_capacity_factor_timeseries_hourly_10Y.csv')
+    solar_generation_dir, wind_generation_dir = energy_generation_dir + '/PV generation data' , energy_generation_dir + '/Wind generation data'
+    solar_load_factor_data = pd.read_csv(solar_generation_dir+'/pv_cf_daily_1Y.csv')
+    wind_load_factor_data = pd.read_csv(wind_generation_dir+'/wind_cf_daily_1Y.csv')
     solar_load_factor_timeseries, wind_load_factor_timeseries = solar_load_factor_data['capacity_factor'], wind_load_factor_data['capacity_factor']
 
 
@@ -28,13 +27,13 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     simulation_years = simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
 
     solar_load_factor_timeseries_series, wind_load_factor_timeseries_series = solar_load_factor_timeseries, wind_load_factor_timeseries
-    solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries), list(wind_load_factor_timeseries)
+    solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries)*n_years, list(wind_load_factor_timeseries)*n_years
 
     #Loads input data
-    h2_demand_timeseries = [99999999 for t in range(365*24)]*n_years # "infinite" demand of H2
+    h2_demand_timeseries = [99999999 for t in range(365)]*n_years # "infinite" demand of H2
 
     #Models Parameters input data
-    input_parameters_dir = '../../models_inputs/models_input_parameters'
+    input_parameters_dir = '../../models_inputs/models_input_parameters/daily resolution oil refinery'
     input_parameters_data = pd.read_csv(input_parameters_dir+'//input_parameters_S2.1.csv')
 
      #%%######################### NETWORK PARAMETERS ########################
@@ -86,9 +85,9 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
         electrolysis_capex, H2_storage_capex = electrolysis_capex*simulation_years/10 , H2_storage_capex*simulation_years/10
 
         #Correct wind and solar power timeseries lengths
-        solar_load_factor_timeseries, wind_load_factor_timeseries = solar_load_factor_timeseries[:24*365*simulation_years], wind_load_factor_timeseries[:24*365*simulation_years]
+        solar_load_factor_timeseries, wind_load_factor_timeseries = solar_load_factor_timeseries[:365*simulation_years], wind_load_factor_timeseries[:365*simulation_years]
         #Correct NG demand timeseries length
-        h2_demand_timeseries = h2_demand_timeseries[:24*365*simulation_years]
+        h2_demand_timeseries = h2_demand_timeseries[:365*simulation_years]
 
 
 
@@ -96,7 +95,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #%% ############## NETWORK SETUP-PYPSA #############################
     ####################################################################
     network = pypsa.Network()
-    network.set_snapshots(range(1, 24*365*simulation_years+1))
+    network.set_snapshots(range(1, 365*simulation_years+1))
 
     #Add buses
     network.add("Bus", "Bus AC", carrier="AC")
@@ -202,13 +201,40 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     model.add_constraints(total_horizon_hydrogen_production   <= maximum_hydrogen_horizon_production, name="Maximum_H2_sim.horizon_production") 
 
 
+    #================ p - p_nom generator constraints ==================
+    network.model.constraints.remove('Generator-ext-p-upper') #remove default pypsa constraints
+    network.model.constraints.remove('Generator-ext-p_nom-upper') #remove default pypsa constraints
+
+
+    #Wind generation p_nom constrtaints
+    wind_power_10Y_ts_x_array = xr.DataArray(data = wind_load_factor_timeseries, dims = 'snapshot' )
+    wind_generation_p_upper = model.variables['Generator-p'].loc[:,'wind_provider_PPA']*1/24 <= model.variables['Generator-p_nom'].loc['wind_provider_PPA'] *wind_power_10Y_ts_x_array
+    model.add_constraints(wind_generation_p_upper, name='wind_generation_p_upper')
+
+    #Solar generation p_nom constrtaints
+    solar_power_10Y_ts_x_array = xr.DataArray(data = solar_load_factor_timeseries, dims = 'snapshot' )
+    solar_generation_p_upper = model.variables['Generator-p'].loc[:,'solar_provider_PPA']*1/24 <= model.variables['Generator-p_nom'].loc['solar_provider_PPA'] *solar_power_10Y_ts_x_array
+    model.add_constraints(solar_generation_p_upper, name='solar_generation_p_upper')
+
+    #NGG generation p_nom constraints
+    NGG_generation_p_upper = model.variables['Generator-p'].loc[:,'NG Generator']*1/24 <= model.variables['Generator-p_nom'].loc['NG Generator'] 
+    model.add_constraints(NGG_generation_p_upper, name='NGG_generation_p_upper')
+
+    #'''
+    #============== Electrolyzer capacity constraints================
+    network.model.constraints.remove('Link-ext-p-upper') #remove default pypsa constraints
+    network.model.constraints.remove('Link-ext-p_nom-upper') #remove default pypsa constraints
+    Electrolyzer_p_upper = model.variables['Link-p'].loc[:,'P_to_H2']*1/24<= model.variables['Link-p_nom'].loc['P_to_H2']
+    model.add_constraints(Electrolyzer_p_upper, name='Electrolyzer_p_upper')
+
+
     #%% ####################### With NPV as objective function #################################
     discount_rate = 0.07
     #define investment frames
     InvPeriodFrames_list = []
     for year in range(1,simulation_years+1):
         #define investment frames
-        start, end = 24*365*(year-1) +1 , 24*365*year+1
+        start, end = 365*(year-1) +1 , 365*year+1
         investment_frame_range = range(start, end)
         InvPeriodFrames_list.append(investment_frame_range)
 
@@ -254,18 +280,6 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     network.optimize.solve_model()
     experiment_end_time = time.perf_counter() 
     experiment_duration  = round((experiment_end_time - experiment_start_time)/60/60,2) #experiment duration in hours
-
-
-    ############ Useful quantities ##########################
-
-    #network3.generators_t.p  #network3.generators.T
-    #network3.links_t.p0      #network3.links.T
-    #network3.loads_t.p       #network3.loads.T
-    #network3.stores_t.p      #network3.stores.T
-
-    #-network3.links_t.p1['H2_to_NG'].sum()*H2_transport_efficiency*H2_sale_price_per_MWh  #income of sold H2
-    #network3.generators_t.p['wind_provider_PPA'].sum()*wind_PPA_provider_marginal #wind generation cost
-    #network3.generators_t.p['solar_provider_PPA'].sum()*solar_PPA_provider_marginal  #solar generation cost
 
 
 
@@ -350,8 +364,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     #Year 1
     expenses_y1+= fixed_opex_total_yearly #fixed opex of Y1
-    expenses_y1+= network.links.T.loc['marginal_cost','P_to_H2']*network.links_t.p0.P_to_H2[:365*24].sum() #electrolysis var opex
-    income_y1 = - network.links_t.p1['H2_to_NG'][:365*24].sum() *H2_sale_price_per_MWh #sales income from selling H2
+    expenses_y1+= network.links.T.loc['marginal_cost','P_to_H2']*network.links_t.p0.P_to_H2[:365].sum() #electrolysis var opex
+    income_y1 = - network.links_t.p1['H2_to_NG'][:365].sum() *H2_sale_price_per_MWh #sales income from selling H2
     cash_flow_y1 = income_y1 -expenses_y1
     theoretical_NPV+= cash_flow_y1/(1+discount_rate)
 
@@ -367,9 +381,9 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     #===============================================================================================
     #TECHNICAL statistics calculations
-    wind_av_LF   = round(network.generators_t.p['wind_provider_PPA'].mean()/ (network.generators.loc['wind_provider_PPA','p_nom_opt']) ,4)
-    solar_av_LF  = round(network.generators_t.p['solar_provider_PPA'].mean()/ (network.generators.loc['solar_provider_PPA','p_nom_opt']),4)
-    electrolysis_av_LF = round(network.links_t.p0['P_to_H2'].mean()/ (network.links.T.P_to_H2['p_nom_opt']),4)
+    wind_av_LF   = round(network.generators_t.p['wind_provider_PPA'].mean()/24/ (network.generators.loc['wind_provider_PPA','p_nom_opt']) ,4)
+    solar_av_LF  = round(network.generators_t.p['solar_provider_PPA'].mean()/24/ (network.generators.loc['solar_provider_PPA','p_nom_opt']),4)
+    electrolysis_av_LF = round(network.links_t.p0['P_to_H2'].mean()/24/ (network.links.T.P_to_H2['p_nom_opt']),4)
     H2_storage_capacity_kg = round(network.stores.loc['H2 depot', 'e_nom_opt' ]/LHV_H2 ,2)
     H2_storage_av_level = network.stores_t.e['H2 depot'].mean() / network.stores.loc['H2 depot', 'e_nom_opt' ]
     H2_to_NG_energies_av_ratio = (-network.links_t.p1['H2_to_NG']/network.generators_t.p['NG Generator']).mean() # avearge E_H2/H_NG
@@ -454,7 +468,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             'Solar Fix.Opex(%)': round(fixed_opex_SF/opex_costs_total*100,2),'Solar Var.Opex(%)': round(SF_production_costs/opex_costs_total*100,2),
             'Electrolysis Fix.Opex(%)': round(fixed_opex_electrolysis/opex_costs_total*100,2), 'Electrolysis Var.Opex(%)': round(electrolysis_var_opex_costs/opex_costs_total*100,2),
             'H2 storage Fix.Opex(%)': round(fixed_opex_H2_storage/opex_costs_total*100,2) , 'H2 storage Var.Opex(%)': round(H2_storage_var_opex_costs/opex_costs_total*100,2) ,
-            'Obj.val (-NPV EUR)': round(model_objval,2), 'Theoretical obj.val (_NPV EUR)': round(theoretical_objval,2), 'Difference (%) ': round((model_objval - theoretical_objval)/model_objval*100,4),
+            'Obj.val (-NPV EUR)': round(model_objval,2), 'Theoretical obj.val (-NPV EUR)': round(theoretical_objval,2), 'Difference (%) ': round((model_objval - theoretical_objval)/model_objval*100,4),
             'Company horizon costs(EUR)': round(costs_total,2), 'Capex(%)': round(capex_costs/costs_total*100,2),'Opex(%)':round(opex_costs_total/costs_total*100,2) , 'Company horizon income(EUR)':round(INCOMEv,2) , 'P2G(H2) income(%)':  round(H2_SALES_INCOMEv/INCOMEv*100,2),'Company horizon net profit(EUR)':round(net_income,2) ,
             'ROI(%)': round(net_income/capex_costs*100,2),
             'Wind generation(%)': round(energy_from_wind_generation/total_el_energy_production*100,2), 'Solar generation(%)': round(energy_from_solar_generation/total_el_energy_production*100,2),
@@ -470,12 +484,12 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     # Save the results to csv
     df = pd.DataFrame(data = data)
     df = df.T
-    save_results_dir =  f'S2.1_oil_refinement_{simulation_years}Y_hydrogen_price_{H2_sale_price_per_kg}_EUR_per_kg'
+    save_results_dir =  f'S2.1_oil_refinement_daily_resolution_{simulation_years}Y_hydrogen_price_{H2_sale_price_per_kg}_EUR_per_kg'
     df.to_csv(save_results_dir)
-    print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_selling_price_per_kg}. ===================')
+    print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_sale_price_per_kg}. ===================')
     
 
-#Main function of the model. Uses argparse to put the "experiment function" into multiprocessing
+#%%Main function of the model. Uses argparse to put the "experiment function" into multiprocessing
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Multiprocessing with argparse, with multiple H2 sale prices as parameters.")

@@ -12,18 +12,17 @@ import logging
 logging.getLogger().setLevel(logging.DEBUG)
 
 
-#This line was added in branch 2
 
 #%%
 def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_years):
     #%%RES input data
     energy_generation_dir = '../../models_inputs/RES generation data'
-    solar_generation_dir, wind_generation_dir = energy_generation_dir + '\\PV generation data' , energy_generation_dir + '\\Wind generation data'
-    solar_load_factor_data = pd.read_csv(solar_generation_dir+'\\pv_capacity_factor_timeseries_hourly_10Y.csv')
-    wind_load_factor_data = pd.read_csv(wind_generation_dir+'\\wind_capacity_factor_timeseries_hourly_10Y.csv')
+    solar_generation_dir, wind_generation_dir = energy_generation_dir + '/PV generation data' , energy_generation_dir + '/Wind generation data'
+    solar_load_factor_data = pd.read_csv(solar_generation_dir+'/pv_cf_hourly_10Y.csv')
+    wind_load_factor_data = pd.read_csv(wind_generation_dir+'/wind_cf_hourly_10Y.csv')
     solar_load_factor_timeseries, wind_load_factor_timeseries = solar_load_factor_data['capacity_factor'], wind_load_factor_data['capacity_factor']
 
-
+    #%%
     n_years = 10         #n_years is the number of years to which the csv parameters such as capex refer to
     simulation_years = simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
 
@@ -34,7 +33,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     h2_demand_timeseries = [99999999 for t in range(365*24)]*n_years # "infinite" demand of H2
 
     #Models Parameters input data
-    input_parameters_dir = '../../models_inputs/models_input_parameters'
+    input_parameters_dir = '../../models_inputs/models_input_parameters/hourly resolution oil refinery'
     input_parameters_data = pd.read_csv(input_parameters_dir+'//input_parameters_S2.1.csv')
 
      #%%######################### NETWORK PARAMETERS ########################
@@ -68,7 +67,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     H2_sale_price_per_kg =    H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / LHV_H2
 
-    #Minimum H2 production data
+    #Minimum and maximum H2 production data
     minimum_hydrogen_yearly_production = 20000 #in tones
     minimum_hydrogen_yearly_production = minimum_hydrogen_yearly_production *1000*LHV_H2 #times 1000 to obtain kg, divided by LHV to obtain MWh
     maximum_hydrogen_yearly_production = 30000 #in tones
