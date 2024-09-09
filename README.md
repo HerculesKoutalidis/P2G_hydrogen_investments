@@ -1,4 +1,4 @@
-# P2G_Paper_2_Hydrogen_Experiments
+# Power to Gas Hydrogen end-product Experiments repository
 This is the repository for P2G experiments with end product hydrogen.
 ## Install Requirements
 Begin by installing the packages needed run the experiments, found inside the ```requirements.txt``` file, to your python environment. Execute  ```pip install -r /path/to/requirements.txt``` to do so.
