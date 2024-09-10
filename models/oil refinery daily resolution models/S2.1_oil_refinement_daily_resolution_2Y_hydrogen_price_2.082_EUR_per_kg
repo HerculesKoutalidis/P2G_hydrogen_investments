@@ -1,0 +1,41 @@
+,0
+Info,"daily resolution, 2 sim.years, oil refinery UC, S2.1"
+CAPEX(EUR),60340005.6
+Wind capex (%),38.52
+Solar capex (%),24.77
+Electrolysis capex (%),36.71
+H2 storage capex (%),0.0
+OPEX(EUR),33687726.64
+Wind Fix.Opex(%),46.23
+Wind Var.Opex(%),0.0
+Solar Fix.Opex(%),24.88
+Solar Var.Opex(%),0.0
+Electrolysis Fix.Opex(%),16.44
+Electrolysis Var.Opex(%),12.46
+H2 storage Fix.Opex(%),0.0
+H2 storage Var.Opex(%),0.0
+Obj.val (-NPV EUR),-22134708.35
+Theoretical obj.val (-NPV EUR),-22134780.36
+Difference (%) ,-0.0003
+Company horizon costs(EUR),94027732.24
+Capex(%),64.17
+Opex(%),35.83
+Company horizon income(EUR),124919980.21
+P2G(H2) income(%),100.0
+Company horizon net profit(EUR),30892247.98
+ROI(%),51.2
+Wind generation(%),61.95
+Solar generation(%),38.05
+Average electricity prod.cost(EUR/kWh),0.0
+Investment NPV (should be zero),22134708.35
+H2 sale price(EUR/kg),2.08
+Wind nom.installation(MW),284.168
+Wind av.capacity factor(% of p_nom),39.28
+Solar nom.installation(MW),274.753
+Solar av.capacity factor(% of p_nom),24.95
+Electrolysis nominal installation(MW),201.35
+Electrolysis av.capacity factor(% of p_nom),89.48
+H2 storage size (kg),0.0
+H2 storage av.storage level (%),
+H2 total production (tons):,59999.99
+Duration of experiment (h),0.0
