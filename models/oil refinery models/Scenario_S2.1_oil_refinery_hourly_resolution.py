@@ -30,7 +30,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries), list(wind_load_factor_timeseries)
 
     #Loads input data
-    h2_demand_timeseries = [99999999 for t in range(365*24)]*n_years # "infinite" demand of H2
+    h2_demand_timeseries = [99999999999 for t in range(365*24)]*n_years # "infinite" demand of H2
 
     #Models Parameters input data
     input_parameters_dir = '../../models_inputs/models_input_parameters/hourly resolution oil refinery'

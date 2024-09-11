@@ -29,7 +29,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries), list(wind_load_factor_timeseries)
 
     #Loads input data
-    h2_demand_timeseries = [99999999 for t in range(365*24)]*n_years # "infinite" demand of H2
+    h2_demand_timeseries = [99999999999 for t in range(365*24)]*n_years # "infinite" demand of H2
 
     #Models Parameters input data
     input_parameters_dir = '../../models_inputs/models_input_parameters/hourly resolution oil refinery'
@@ -110,7 +110,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             bus= 'Bus AC',
             carrier= 'AC',
             marginal_cost = wind_PPA_provider_marginal,
-            p_nom_extendable= True , 
+            #p_nom_extendable= True , 
+            p_nom = 300,
             p_max_pu= wind_load_factor_timeseries,
             capital_cost= wind_PPA_provider_capex,)
 
@@ -120,7 +121,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             bus= 'Bus AC',
             carrier= 'AC',
             marginal_cost = solar_PPA_provider_marginal,
-            p_nom_extendable= True , 
+            #p_nom_extendable= True , 
+            p_nom = 300,
             p_max_pu= solar_load_factor_timeseries,
             capital_cost=solar_PPA_provider_capex,)
 
@@ -189,6 +191,10 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     total_horizon_hydrogen_production = model.variables['Link-p'].loc[:,'H2_to_NG'].sum()* H2_transport_efficiency
     minimum_hydrogen_horizon_production = minimum_hydrogen_yearly_production*simulation_years
     model.add_constraints(total_horizon_hydrogen_production   >= minimum_hydrogen_horizon_production, name="Minimum_H2_sim.horizon_production")
+
+    # Add a constraint that guarantees maximum yearly H2 production
+    maximum_hydrogen_horizon_production = maximum_hydrogen_yearly_production*simulation_years
+    model.add_constraints(total_horizon_hydrogen_production   <= maximum_hydrogen_horizon_production, name="Maximum_H2_sim.horizon_production") 
 
 
     #%% ####################### With NPV as objective function #################################
