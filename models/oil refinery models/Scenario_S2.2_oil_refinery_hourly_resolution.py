@@ -187,6 +187,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
 
     #%%####### MODEL CORRECTIONS ################################
+    '''
     # Add a constraint that guarantees minimum yearly H2 production
     total_horizon_hydrogen_production = model.variables['Link-p'].loc[:,'H2_to_NG'].sum()* H2_transport_efficiency
     minimum_hydrogen_horizon_production = minimum_hydrogen_yearly_production*simulation_years
@@ -195,7 +196,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     # Add a constraint that guarantees maximum yearly H2 production
     maximum_hydrogen_horizon_production = maximum_hydrogen_yearly_production*simulation_years
     model.add_constraints(total_horizon_hydrogen_production   <= maximum_hydrogen_horizon_production, name="Maximum_H2_sim.horizon_production") 
-
+    '''
 
     #%% ####################### With NPV as objective function #################################
     discount_rate = 0.07
