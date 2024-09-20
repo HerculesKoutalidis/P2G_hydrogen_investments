@@ -15,34 +15,30 @@ logging.getLogger().setLevel(logging.DEBUG)
 #%%
 def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_years):
     #%%RES input data
-    energy_generation_dir = '../../models_inputs/RES generation data'
-    solar_generation_dir, wind_generation_dir = energy_generation_dir + '/PV generation data' , energy_generation_dir + '/Wind generation data'
-    solar_load_factor_data = pd.read_csv(solar_generation_dir+'/pv_cf_hourly_10Y.csv')
-    wind_load_factor_data = pd.read_csv(wind_generation_dir+'/wind_cf_hourly_10Y.csv')
+    solar_load_factor_data = pd.read_csv('./Data/pv_cf.csv')
+    wind_load_factor_data = pd.read_csv('./Data/wind_cf.csv')
     solar_load_factor_timeseries, wind_load_factor_timeseries = solar_load_factor_data['capacity_factor'], wind_load_factor_data['capacity_factor']
 
     #%%
     n_years = 10         #n_years is the number of years to which the csv parameters such as capex refer to
-    simulation_years = simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
+    simulation_years = 1#simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
 
     solar_load_factor_timeseries_series, wind_load_factor_timeseries_series = solar_load_factor_timeseries, wind_load_factor_timeseries
     solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries), list(wind_load_factor_timeseries)
 
-    #Loads input data
-    natural_gas_demand_dir = '../../models_inputs/DEPA'
-    ng_demand_timeseries_data = pd.read_csv(natural_gas_demand_dir+ '/spata_ng_hourly.csv')
-    ng_demand_timeseries =  round(ng_demand_timeseries_data['demand(kWh)']/1000 ,2) #convert kWh to MWh
+    #%%Loads input data
+    ng_demand_timeseries_data = pd.read_csv('./Data/athens_ng_demand.csv')
+    ng_demand_timeseries =  round(ng_demand_timeseries_data['ng_demand(MWh)'] ,5) 
     ng_demand_timeseries_series = ng_demand_timeseries
-    ng_demand_timeseries = list(ng_demand_timeseries)*n_years
+    ng_demand_timeseries = list(ng_demand_timeseries)
 
     #Models Parameters input data
-    input_parameters_dir = '../../models_inputs/models_input_parameters/final_exit_point'
-    input_parameters_data = pd.read_csv(input_parameters_dir+'/input_parameters_S2.1.csv')
+    input_parameters_data = pd.read_csv('./Data/input_parameters_S2.2.csv')
 
     #%%######################### NETWORK PARAMETERS ########################
     #Generators data
-    LHV_H2 = 0.03333 #LHV of H2 in MWh/kg H2
-    LHV_NG = 0.0131  #LHV of NG in MWh/kg NG
+    LHV_H2,HHV_H2 = 0.03333, 0.03989  #LHV,HHV of H2 in MWh/kg H2
+    LHV_NG, HHV_NG = 0.0131, 0.01449  #LHV,HHV of NG in MWh/kg NG
 
     #Generators data
     wind_PPA_provider_capex, solar_PPA_provider_capex = input_parameters_data['wind_capex'][0] , input_parameters_data['solar_capex'][0]
@@ -67,8 +63,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     charge_efficiency, discharge_efficiency, H2_transport_efficiency = 0.99, 0.99, 0.99
 
     #Selling prices data
-    H2_sale_price_per_kg = H2_selling_price_per_kg
-    H2_sale_price_per_MWh = H2_sale_price_per_kg / LHV_H2
+    H2_sale_price_per_kg = 3.1#H2_selling_price_per_kg
+    H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
 
 
     #Max H2 admixture
@@ -87,12 +83,12 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
         #Correct all components capexes:
         wind_PPA_provider_capex, solar_PPA_provider_capex = wind_PPA_provider_capex*simulation_years/10, solar_PPA_provider_capex*simulation_years/10
         electrolysis_capex, H2_storage_capex = electrolysis_capex*simulation_years/10 , H2_storage_capex*simulation_years/10
-
+        
         #Correct wind and solar power timeseries lengths
         solar_load_factor_timeseries, wind_load_factor_timeseries = solar_load_factor_timeseries[:24*365*simulation_years], wind_load_factor_timeseries[:24*365*simulation_years]
         #Correct NG demand timeseries length
-        ng_demand_timeseries = ng_demand_timeseries[:24*365*simulation_years]
-
+        ng_demand_timeseries = ng_demand_timeseries[:24*365*simulation_years] 
+        
 
     #%% ############## NETWORK SETUP-PYPSA #############################
     ##############################################################
@@ -477,12 +473,13 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     # Save the results to csv
     df = pd.DataFrame(data = data)
     df = df.T
+    H2_sale_price_per_kg,H2_selling_price_per_kg =3.1, 3.1
     save_results_dir =  f'S2.2_{simulation_years}Y_hydrogen_price_{H2_sale_price_per_kg}_EUR_per_kg'
     df.to_csv(save_results_dir)
     print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_selling_price_per_kg}. ===================')
     
 
-#Main function of the model. Uses argparse to put the "experiment function" into multiprocessing   
+#%%Main function of the model. Uses argparse to put the "experiment function" into multiprocessing   
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Multiprocessing with argparse, with multiple H2 sale prices as parameters.")
@@ -514,3 +511,4 @@ def main():
 if __name__ == "__main__":
     main()
     
+# %%
