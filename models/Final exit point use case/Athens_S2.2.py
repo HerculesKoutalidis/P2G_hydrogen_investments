@@ -71,7 +71,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     power_ratio = round(HHV_H2* Mr_H2/(HHV_NG*Mr_ng) * MHA/(1-MHA),4)
     
     #Selling prices data
-    H2_sale_price_per_kg = H2_selling_price_per_kg
+    H2_sale_price_per_kg = 3.5 #H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
 
     #Environmental/emissions parameters
@@ -118,7 +118,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             marginal_cost = wind_PPA_provider_marginal,
             p_nom_extendable= True , 
             p_nom_max = 30,
-            p_set= wind_load_factor_timeseries,
+            p_max_pu= wind_load_factor_timeseries,
             capital_cost= wind_PPA_provider_capex,)
 
     network.add(
@@ -129,7 +129,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             marginal_cost = solar_PPA_provider_marginal,
             p_nom_extendable= True , 
             p_nom_max = 30, 
-            p_set= solar_load_factor_timeseries,
+            p_max_pu= solar_load_factor_timeseries,
             capital_cost=solar_PPA_provider_capex,)
 
     network.add(
@@ -226,12 +226,14 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
 
     #Compute cash flows of each year. Capex is payed in Y1!
-    CFY1 = (model.variables['Link-p'].loc[InvPeriodFrames_list[0],'H2_to_NG'].sum() * H2_transport_efficiency* H2_sale_price_per_MWh - #H2 sales income  OK
+    CFY1 = (model.variables['Link-p'].loc[InvPeriodFrames_list[0],'H2_to_NG'].sum() * H2_transport_efficiency* H2_sale_price_per_MWh - #H2 sales income  
             
-            model.variables['Generator-p'].loc[InvPeriodFrames_list[0],'wind_provider_PPA'].sum()* wind_PPA_provider_marginal -      #wind var.opex    OK
-            model.variables['Generator-p'].loc[InvPeriodFrames_list[0],'solar_provider_PPA'].sum()* solar_PPA_provider_marginal -    #solar var opex   OK   
-            model.variables['Link-p'].loc[InvPeriodFrames_list[0],'P_to_H2'].sum()*network.links.T.P_to_H2['marginal_cost'] - #electrolyzer variable opex OK
-            total_fixed_opex_per_year # fixed opex for Y1  ok
+            #model.variables['Generator-p'].loc[InvPeriodFrames_list[0],'wind_provider_PPA'].sum()* wind_PPA_provider_marginal -      #wind var.opex
+            sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) *  model.variables['Generator-p_nom'].loc['wind_provider_PPA'] *wind_PPA_provider_marginal- # wind var.opex  
+            #model.variables['Generator-p'].loc[InvPeriodFrames_list[0],'solar_provider_PPA'].sum()* solar_PPA_provider_marginal -    #solar var opex      
+            sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) *  model.variables['Generator-p_nom'].loc['solar_provider_PPA']*solar_PPA_provider_marginal- # solar var.opex 
+            model.variables['Link-p'].loc[InvPeriodFrames_list[0],'P_to_H2'].sum()*network.links.T.P_to_H2['marginal_cost'] - #electrolyzer variable opex 
+            total_fixed_opex_per_year # fixed opex for Y1  
         )
 
     objective_function_NPV += CFY1 /(1+discount_rate)
@@ -239,12 +241,14 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #compute and add up the cash flows of the years >1. These years have only O&M costs.
     for year in range(2, simulation_years+1):
         ss_range = InvPeriodFrames_list[year-1]
-        cash_flow_of_year = (model.variables['Link-p'].loc[ss_range,'H2_to_NG'].sum() * H2_transport_efficiency* H2_sale_price_per_MWh - #income from H2 sales OK
+        cash_flow_of_year = (model.variables['Link-p'].loc[ss_range,'H2_to_NG'].sum() * H2_transport_efficiency* H2_sale_price_per_MWh - #income from H2 sales 
                             
-                            model.variables['Generator-p'].loc[ss_range,'wind_provider_PPA'].sum()* wind_PPA_provider_marginal  -  #wind var.opex  OK
-                            model.variables['Generator-p'].loc[ss_range,'solar_provider_PPA'].sum()* solar_PPA_provider_marginal - #solar.var opex  OK
-                            model.variables['Link-p'].loc[ss_range,'P_to_H2'].sum()*network.links.T.P_to_H2['marginal_cost']-  #electrolysis variable opex  OK
-                            total_fixed_opex_per_year #total fixed opex for that year OK
+                            #model.variables['Generator-p'].loc[ss_range,'wind_provider_PPA'].sum()* wind_PPA_provider_marginal  -  #wind var.opex
+                            sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]]) *  model.variables['Generator-p_nom'].loc['wind_provider_PPA']*wind_PPA_provider_marginal- # wind var.opex  
+                            #model.variables['Generator-p'].loc[ss_range,'solar_provider_PPA'].sum()* solar_PPA_provider_marginal - #solar.var opex  
+                            sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]]) *  model.variables['Generator-p_nom'].loc['solar_provider_PPA']*solar_PPA_provider_marginal- # solar var.opex
+                            model.variables['Link-p'].loc[ss_range,'P_to_H2'].sum()*network.links.T.P_to_H2['marginal_cost']-  #electrolysis variable opex  
+                            total_fixed_opex_per_year #total fixed opex for that year 
                             )
 
         objective_function_NPV+= cash_flow_of_year/((1+discount_rate)**year)   
@@ -252,7 +256,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #Solve model with minus NPV as obj function.
     model.objective =   -objective_function_NPV
 
-    #SOLVE
+    #%%SOLVE
     experiment_start_time = time.perf_counter() #start measuring time of experiment
     network.optimize.solve_model()
     experiment_end_time = time.perf_counter() 
