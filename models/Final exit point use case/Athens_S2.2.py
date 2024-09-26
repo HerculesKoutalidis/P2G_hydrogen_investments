@@ -21,7 +21,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     #%%
     n_years = 10         #n_years is the number of years to which the csv parameters such as capex refer to
-    simulation_years = 1#simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
+    simulation_years = simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
 
     solar_load_factor_timeseries_series, wind_load_factor_timeseries_series = solar_load_factor_timeseries, wind_load_factor_timeseries
     solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries), list(wind_load_factor_timeseries)
@@ -71,7 +71,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     power_ratio = round(HHV_H2* Mr_H2/(HHV_NG*Mr_ng) * MHA/(1-MHA),4)
     
     #Selling prices data
-    H2_sale_price_per_kg = 3.5 #H2_selling_price_per_kg
+    H2_sale_price_per_kg = H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
 
     #Environmental/emissions parameters
@@ -339,28 +339,31 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     fixed_opex_WF_yearly, fixed_opex_SF_yearly = wind_fixed_opex* network.generators.loc['wind_provider_PPA','p_nom_opt'] ,  solar_fixed_opex* network.generators.loc['solar_provider_PPA','p_nom_opt'] #OK
     fixed_opex_electrolysis_yearly = network.links.T.P_to_H2['p_nom_opt'] * electrolysis_fixed_opex #OK
     fixed_opex_H2_storage_yearly = network.stores.loc['H2 depot', 'e_nom_opt' ] * H2_storage_fixed_opex #OK
-    fixed_opex_total_yearly = fixed_opex_WF_yearly + fixed_opex_SF_yearly + fixed_opex_electrolysis_yearly + fixed_opex_H2_storage_yearly #OK
+    fixed_opex_total_yearly = fixed_opex_WF_yearly + fixed_opex_SF_yearly + fixed_opex_electrolysis_yearly + fixed_opex_H2_storage_yearly #
 
     #Year 0 (before investment becomes operational)
-    expenses_y0 = capex_costs #capex is payed all in Y0   OK
+    expenses_y0 = capex_costs #capex is payed all in Y0   
     theoretical_NPV-=expenses_y0 #minus because capex is an expense!
 
     #Year 1
-    income_y1 = - network.links_t.p1['H2_to_NG'][:365*24].sum() *H2_sale_price_per_MWh #OK
-    expenses_y1+= network.generators_t.p['wind_provider_PPA'][:365*24].sum() * wind_PPA_provider_marginal   #wind var.opex for Y1  OK
-    expenses_y1+= network.generators_t.p['solar_provider_PPA'][:365*24].sum() * solar_PPA_provider_marginal # solar var.opex for Y1  OK
-    expenses_y1+= network.links.T.loc['marginal_cost','P_to_H2']*network.links_t.p0.P_to_H2[:365*24].sum() #electrolysis var opex OK
-    expenses_y1+= fixed_opex_total_yearly #fixed opex of Y1 OK
+    income_y1 = - network.links_t.p1['H2_to_NG'][:365*24].sum() *H2_sale_price_per_MWh #
+    #expenses_y1+= network.generators_t.p['wind_provider_PPA'][:365*24].sum() * wind_PPA_provider_marginal   #wind var.opex for Y1
+    expenses_y1+=  sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) * network.generators.loc['wind_provider_PPA','p_nom_opt']*wind_PPA_provider_marginal #wind var.opex for Y1
+    #expenses_y1+= network.generators_t.p['solar_provider_PPA'][:365*24].sum() * solar_PPA_provider_marginal # solar var.opex for Y1  
+    expenses_y1+=  sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) * network.generators.loc['solar_provider_PPA','p_nom_opt']*solar_PPA_provider_marginal #solar var.opex for Y1
+    expenses_y1+= network.links.T.loc['marginal_cost','P_to_H2']*network.links_t.p0.P_to_H2[:365*24].sum() #electrolysis var opex 
+    expenses_y1+= fixed_opex_total_yearly #fixed opex of Y1 
     cash_flow_y1 = income_y1 -expenses_y1
     theoretical_NPV+= cash_flow_y1/(1+discount_rate)
 
     #Next years
     for year in range(2, simulation_years+1):
         ss_range = InvPeriodFrames_list[year-1]
-        cash_flow_of_year = ( - network.links_t.p1['H2_to_NG'][ss_range].sum() *H2_sale_price_per_MWh - #income from H2 sales OK
-                            
-                                network.generators_t.p['wind_provider_PPA'][ss_range].sum() * wind_PPA_provider_marginal -  # wibd var.opex  OK
-                                network.generators_t.p['solar_provider_PPA'][ss_range].sum() * solar_PPA_provider_marginal- # solar var.opex OK
+        cash_flow_of_year = ( - network.links_t.p1['H2_to_NG'][ss_range].sum() *H2_sale_price_per_MWh - #income from H2 sales                 
+                                #network.generators_t.p['wind_provider_PPA'][ss_range].sum() * wind_PPA_provider_marginal -  # wind var.opex 
+                                sum([wind_load_factor_timeseries[t-1] for t in ss_range]) * network.generators.loc['wind_provider_PPA','p_nom_opt']*wind_PPA_provider_marginal- #wind var.opex 
+                                #network.generators_t.p['solar_provider_PPA'][ss_range].sum() * solar_PPA_provider_marginal- # solar var.opex 
+                                sum([solar_load_factor_timeseries[t-1] for t in ss_range]) * network.generators.loc['solar_provider_PPA','p_nom_opt']*solar_PPA_provider_marginal- #solar var.opex
                                 network.links.T.loc['marginal_cost','P_to_H2']*network.links_t.p0.P_to_H2[ss_range].sum()- #electrolysis var OPEX OK
                                 fixed_opex_total_yearly #total fixed opex for that year OK
                             )
