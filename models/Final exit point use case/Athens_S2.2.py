@@ -485,7 +485,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     df = pd.DataFrame(data = data)
     df = df.T
     #H2_sale_price_per_kg,H2_selling_price_per_kg =3.1, 3.1
-    save_results_dir =  f'S2.2_{simulation_years}Y_hydrogen_price_{H2_sale_price_per_kg}_EUR_per_kg'
+    save_results_dir =  f'S2.2_{simulation_years}Y_hydrogen_price_{H2_sale_price_per_kg}_EUR_per_kg_ext'
     df.to_csv(save_results_dir)
     print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_selling_price_per_kg}. ===================')
     
