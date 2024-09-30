@@ -485,7 +485,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     df = pd.DataFrame(data = data)
     df = df.T
     #H2_sale_price_per_kg,H2_selling_price_per_kg =3.1, 3.1
-    save_results_dir =  f'S2.2_{simulation_years}Y_hydrogen_price_{H2_sale_price_per_kg}_EUR_per_kg_ext'
+    save_results_dir =  f'ATH_S2_{simulation_years}Y_H2_price_{H2_sale_price_per_kg}_EUR_per_kg'
     df.to_csv(save_results_dir)
     print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_selling_price_per_kg}. ===================')
     
@@ -494,13 +494,14 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Multiprocessing with argparse, with multiple H2 sale prices as parameters.")
-    parser.add_argument('-v1',"--value1", type=float, default= 2.9, help="H2 price value ")
-    parser.add_argument('-v2',"--value2", type=float, default= 3.05, help="H2 price value ")
-    parser.add_argument('-v3',"--value3", type=float, default= 3.1, help="H2 price value ")
-    parser.add_argument('-v4',"--value4", type=float, default= 3.2, help="H2 price value ")
+    parser.add_argument('-v1',"--value1", type=float, default= 3.5, help="H2 price value ")
+    parser.add_argument('-v2',"--value2", type=float, default= 4, help="H2 price value ")
+    parser.add_argument('-v3',"--value3", type=float, default= 5, help="H2 price value ")
+    parser.add_argument('-v4',"--value4", type=float, default= 6, help="H2 price value ")
+    parser.add_argument('-v5',"--value5", type=float, default= 8, help="H2 price value ")
     parser.add_argument('-y',"--simulation_years", type=int, default= 1, help="Number of simulation horizon years (integer). From 1 to 10 ")
     args = parser.parse_args()
-    H2_sales_prices_list = [args.value1, args.value2, args.value3,args.value4]
+    H2_sales_prices_list = [args.value1, args.value2, args.value3,args.value4, args.value5]
     simulation_horizon_number_of_years = args.simulation_years
 
     # Create and start worker processes
