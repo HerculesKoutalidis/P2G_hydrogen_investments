@@ -58,7 +58,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     NG_marginal_cost = input_parameters_data['NG_marginal_cost'][0]
 
     #Selling prices data
-    H2_sale_price_per_kg = 4.7#H2_selling_price_per_kg
+    H2_sale_price_per_kg = 3.8#H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
 
     #Links data
@@ -490,6 +490,24 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     df.to_csv(save_results_dir)
     print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_selling_price_per_kg}. ===================')
     
+    #%%################### WRITE USEFUL TIMESERIES RESULTS TO CSV ####################
+    wind_nom_capacity, solar_nom_capacity = network.generators.loc['wind_provider_PPA','p_nom_opt'], network.generators.loc['solar_provider_PPA','p_nom_opt']
+    actual_wind_cf_ts, actual_solar_cf_ts = network.generators_t.p['wind_provider_PPA'] / wind_nom_capacity , network.generators_t.p['solar_provider_PPA'] / solar_nom_capacity
+    ng_supply_ts = network.generators_t.p['NG Generator']
+
+    electrolysis_capacity = round(network.links.T.P_to_H2['p_nom_opt'],4)
+    electrolysis_cf_ts = round(network.links_t.p0['P_to_H2']/ electrolysis_capacity ,4)
+
+    H2_energy_storage_capacity = network.stores.loc['H2 depot', 'e_nom_opt' ]
+    H2_energy_storage_cf_ts = round(network.stores_t.e['H2 depot'] / H2_energy_storage_capacity,3)
+
+    H2_storage_charges_ts = network.stores_t.p['H2 depot']
+    H2_injection_to_grid_ts = -network.links_t.p1['H2_to_NG'] #in MWh thermal. Divide with HHV_H2 to obtain kg of H2
+
+    horizontal_concat = pd.concat([actual_wind_cf_ts, actual_solar_cf_ts,ng_supply_ts, electrolysis_cf_ts,H2_energy_storage_cf_ts,H2_storage_charges_ts,H2_injection_to_grid_ts], axis=1)    
+    save_results_dir =  f'timeseries_results_S1_{simulation_years}Y_{H2_sale_price_per_kg}'
+    horizontal_concat.to_csv(save_results_dir)
+
 
 #%%Main function of the model. Uses argparse to put the "experiment function" into multiprocessing
 def main():
