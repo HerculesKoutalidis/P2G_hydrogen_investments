@@ -21,7 +21,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     #%%
     n_years = 10         #n_years is the number of years to which the csv parameters such as capex refer to
-    simulation_years = simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
+    simulation_years = 1#simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
 
     solar_load_factor_timeseries_series, wind_load_factor_timeseries_series = solar_load_factor_timeseries, wind_load_factor_timeseries
     solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries), list(wind_load_factor_timeseries)
@@ -55,6 +55,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     electrolysis_efficiency =  input_parameters_data['electrolysis_efficiency'][0]
     electrolysis_capex = input_parameters_data['electrolysis_capex'][0]
     electrolysis_fixed_opex = input_parameters_data['electrolysis_fixed_opex'][0]
+    electrolysis_TSO_cost_per_MW_per_year= 37464 #TSO transmission charge in €/MW/year
+    electrolysis_fixed_opex += electrolysis_TSO_cost_per_MW_per_year
     electrolysis_var_opex = input_parameters_data['electrolysis_variable_opex'][0]
     charge_efficiency, discharge_efficiency, H2_transport_efficiency = 0.99, 0.99, 0.99
 
@@ -71,12 +73,12 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     power_ratio = round(HHV_H2* Mr_H2/(HHV_NG*Mr_ng) * MHA/(1-MHA),4)
     
     #Selling prices data
-    H2_sale_price_per_kg = H2_selling_price_per_kg
+    H2_sale_price_per_kg = 4.7#H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
 
     #Environmental/emissions parameters
     wind_generation_CO2_emissions_per_MWh, solar_generation_CO2_emissions_per_MWh = 10, 13
-    GHG_emissions_per_MWh_NG = 2.75 /LHV_NG/1000 #GHG emissions in kg of CO2 per MWh of combusted NG (209.9 kg CO2 /MWh of comb.NG @ LHV)
+    GHG_emissions_per_MWh_NG = 2.75 /HHV_NG/1000 #GHG emissions in kg of CO2 per MWh of combusted NG (209.9 kg CO2 /MWh of comb.NG @ LHV)
 
 
     #Make 5Y or 10Y (or other horizon) simulation?
@@ -117,7 +119,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             carrier= 'AC',
             marginal_cost = wind_PPA_provider_marginal,
             p_nom_extendable= True , 
-            p_nom_max = 30,
+            #p_nom_max = 30,
             p_max_pu= wind_load_factor_timeseries,
             capital_cost= wind_PPA_provider_capex,)
 
@@ -128,7 +130,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             carrier= 'AC',
             marginal_cost = solar_PPA_provider_marginal,
             p_nom_extendable= True , 
-            p_nom_max = 30, 
+            #p_nom_max = 30, 
             p_max_pu= solar_load_factor_timeseries,
             capital_cost=solar_PPA_provider_capex,)
 
@@ -218,6 +220,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     electrolyzer_fixed_opex_per_year = model.variables['Link-p_nom'].loc['P_to_H2'] * electrolysis_fixed_opex
     H2_storage_fixed_opex_per_year =  model.variables['Store-e_nom'] * H2_storage_fixed_opex
     total_fixed_opex_per_year = electrolyzer_fixed_opex_per_year + H2_storage_fixed_opex_per_year
+
     
     #Definition of NPV (obj.function will be minus the NPV). Capexes are payed in year zero. Minus because capex is an expense!
     objective_function_NPV  = ( - model.variables['Link-p_nom'].loc['P_to_H2'] *network.links.T.P_to_H2['capital_cost'] - #electrolyzer capex
@@ -267,18 +270,18 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     # %% ############### COSTS, INCOME, TECHNICAL , ECONOMIC & ENVIRONEMNTAL KPIS  CALCULATIONS ###################
     ###############################################################################################################
     #Costs calculations
-    #marginal costs
-    WF_production_costs = network.generators_t.p['wind_provider_PPA'].sum() * network.generators.loc['wind_provider_PPA','marginal_cost']
-    SF_production_costs = network.generators_t.p['solar_provider_PPA'].sum() * network.generators.loc['solar_provider_PPA','marginal_cost']
+    #marginal costs 
+    WF_procurement_costs = sum(wind_load_factor_timeseries) * network.generators.loc['wind_provider_PPA','p_nom_opt']* network.generators.loc['wind_provider_PPA','marginal_cost']
+    SF_procurement_costs = sum(solar_load_factor_timeseries) *network.generators.loc['solar_provider_PPA','p_nom_opt']* network.generators.loc['solar_provider_PPA','marginal_cost']
     NGG_production_costs= network.generators_t.p['NG Generator'].sum() * network.generators.loc['NG Generator','marginal_cost']
 
-    energy_production_costs =  WF_production_costs + SF_production_costs+ NGG_production_costs
+    energy_procurement_costs =  WF_procurement_costs + SF_procurement_costs+ NGG_production_costs
 
     electrolysis_var_opex_costs = (network.links.T.loc['marginal_cost','P_to_H2']*network.links_t.p0.P_to_H2.sum() )
                             #network3.links.T.loc['marginal_cost','H2_to_NG']*network3.links_t.p0.H2_to_NG.sum() )
     H2_storage_var_opex_costs = 0
 
-    variable_costs = energy_production_costs + electrolysis_var_opex_costs + H2_storage_var_opex_costs
+    variable_costs = energy_procurement_costs + electrolysis_var_opex_costs + H2_storage_var_opex_costs
 
     #capex costs
     capex_WF = network.generators.loc['wind_provider_PPA','capital_cost']*network.generators.loc['wind_provider_PPA','p_nom_opt']
@@ -292,7 +295,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     #Fixed OPEX costs total sim calculations
     fixed_opex_WF, fixed_opex_SF = wind_fixed_opex* network.generators.loc['wind_provider_PPA','p_nom_opt'] * simulation_years,  solar_fixed_opex* network.generators.loc['solar_provider_PPA','p_nom_opt'] * simulation_years
-    fixed_opex_electrolysis = network.links.T.P_to_H2['p_nom_opt'] * electrolysis_fixed_opex *simulation_years
+    fixed_opex_electrolysis = network.links.T.P_to_H2['p_nom_opt'] * electrolysis_fixed_opex *simulation_years #OK
     fixed_opex_H2_storage = network.stores.loc['H2 depot', 'e_nom_opt' ] * H2_storage_fixed_opex *simulation_years
     fixed_opex_total =  fixed_opex_WF + fixed_opex_SF +fixed_opex_electrolysis +fixed_opex_H2_storage 
 
@@ -383,8 +386,15 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     H2_total_production_in_tons_per_year = H2_total_production_in_tons/ simulation_years
 
     #ENVIRONEMNTAL statistics calculations
-    GHG_total_emissions_baseline = round(network.loads_t.p['NG load'].sum() * GHG_emissions_per_MWh_NG,3)   #tons of CO2 emitted in the case where 100% of NG demand is covered by NG
-    GHG_total_emissions_scenario = round(network.generators_t.p['NG Generator'].sum() * GHG_emissions_per_MWh_NG,3) #tons of CO2 emitted under optimal solution
+    GHG_total_emissions_baseline_combustion = round(2.75*network.loads_t.p['NG load'].sum()/HHV_NG/1000,3)   #tons of CO2 emitted in the case where 100% of NG demand is covered by NG
+    GHG_total_emissions_baseline_from_losses = round( 0.2828*network.loads_t.p['NG load'].sum()/HHV_NG/1000,3) #tons of CO2 eq. emitted due to NG leakage of 1%
+    GHG_total_emissions_baseline = GHG_total_emissions_baseline_combustion + GHG_total_emissions_baseline_from_losses
+    GHG_total_emissions_baseline_yearly = round(GHG_total_emissions_baseline/simulation_years,3) #tons yearly
+
+    GHG_total_emissions_scenario_combustion = round(2.75*network.generators_t.p['NG Generator'].sum()/HHV_NG/1000,3) #tons of CO2 emitted from combustion of NG under optimal solution
+    GHG_total_emissions_scenario_from_losses = round(0.2828*network.generators_t.p['NG Generator'].sum()/HHV_NG/1000,3) #tons of Co2 eq. due to NG leakage
+    GHG_total_emissions_scenario = GHG_total_emissions_scenario_combustion + GHG_total_emissions_scenario_from_losses
+    GHG_total_emissions_scenario_yearly = round(GHG_total_emissions_scenario/simulation_years,3) #tons yearly
     GHG_emissions_fraction_of_baseline = round(GHG_total_emissions_scenario/GHG_total_emissions_baseline,4)
 
     #===============================================================================================
@@ -402,9 +412,9 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     print('OPEX: '+' '*17,round(opex_costs_total,2),' €')
     print('Wind  fixed opex (% of total system opex):'+' '*8,round(fixed_opex_WF/opex_costs_total*100,2), '%')
-    print('Wind      v.opex (% of total system opex):',round(WF_production_costs/opex_costs_total*100,2), '%')
+    print('Wind      v.opex (% of total system opex):',round(WF_procurement_costs/opex_costs_total*100,2), '%')
     print('Solar fixed opex (% of total system opex):'+' '*8,round(fixed_opex_SF/opex_costs_total*100,2), '%')
-    print('Solar     v.opex (% of total system opex):',round(SF_production_costs/opex_costs_total*100,2), '%')
+    print('Solar     v.opex (% of total system opex):',round(SF_procurement_costs/opex_costs_total*100,2), '%')
     print('Electrolysis fixed opex (% of total system opex):'+' '*8,round(fixed_opex_electrolysis/opex_costs_total*100,2), '%')
     print('Electrolysis v.opex(% of total system opex):',round(electrolysis_var_opex_costs/opex_costs_total*100,2),'%')
     print('H2 storage fixed opex (% of total system opex):'+' '*8,round(fixed_opex_H2_storage/opex_costs_total*100,2), '%')
@@ -454,16 +464,16 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     print('=======================================')
     print('ENVIRONMENTAL')
-    print("GHG emissions of baseline:                 ", GHG_total_emissions_baseline, ' tons CO2 eq.')
+    print("GHG yearly emissions of baseline:", GHG_total_emissions_baseline_yearly, ' tons CO2 eq.')
     print("GHG emissions of scenario (% of baseline): ", round(GHG_emissions_fraction_of_baseline*100,2), ' %')
-    print("GHG emissions savings: ", round(GHG_total_emissions_baseline - GHG_total_emissions_scenario,2), ' tons CO2 eq.')
+    print("GHG yearly emissions savings: ", round(GHG_total_emissions_baseline_yearly - GHG_total_emissions_scenario_yearly,3), ' tons CO2 eq. \n')
 
 
     #%%################## WRITE RESULTS TO CSV #############################
     df = pd.DataFrame()
     data = {'CAPEX(EUR)': [round(capex_costs,2)],'Wind capex (%)': [round(capex_WF/capex_costs*100,2)],'Solar capex (%)': [round(capex_SF/capex_costs*100,2)],'Electrolysis capex (%)': [round(capex_electrolyser/capex_costs*100,2)],'H2 storage capex (%)': [round(capex_H2_storage/capex_costs*100,2)],
-            'OPEX(EUR)': round(opex_costs_total,2) , 'Wind Fix.Opex(%)':round(fixed_opex_WF/opex_costs_total*100,2) ,'Wind Var.Opex(%)': round(WF_production_costs/opex_costs_total*100,2),
-            'Solar Fix.Opex(%)': round(fixed_opex_SF/opex_costs_total*100,2),'Solar Var.Opex(%)': round(SF_production_costs/opex_costs_total*100,2),
+            'OPEX(EUR)': round(opex_costs_total,2) , 'Wind Fix.Opex(%)':round(fixed_opex_WF/opex_costs_total*100,2) ,'Wind Var.Opex(%)': round(WF_procurement_costs/opex_costs_total*100,2),
+            'Solar Fix.Opex(%)': round(fixed_opex_SF/opex_costs_total*100,2),'Solar Var.Opex(%)': round(SF_procurement_costs/opex_costs_total*100,2),
             'Electrolysis Fix.Opex(%)': round(fixed_opex_electrolysis/opex_costs_total*100,2), 'Electrolysis Var.Opex(%)': round(electrolysis_var_opex_costs/opex_costs_total*100,2),
             'H2 storage Fix.Opex(%)': round(fixed_opex_H2_storage/opex_costs_total*100,2) , 'H2 storage Var.Opex(%)': round(H2_storage_var_opex_costs/opex_costs_total*100,2) ,
             'Obj.val (-NPV EUR)': round(model_objval,2), 'Theoretical obj.val (_NPV EUR)': round(theoretical_objval,2), 'Difference (%) ': round((model_objval - theoretical_objval)/model_objval*100,4),
@@ -477,7 +487,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             'H2 storage size (kg)': H2_storage_capacity_kg ,'H2 storage av.storage level (%)': round(H2_storage_av_level*100,2), 'H2 av.injection per volume (%)': round(H2_average_injection_ratio_per_volume*100,4) ,
             'H2 total production (tons):': round(H2_total_production_in_tons,2), 'H2 av. yearly production (tons):': round(H2_total_production_in_tons_per_year,3),
             'NG energy demand covered by synthetic H2 (%)':round(H2_content_of_NG*100,2) ,
-            'GHG emissions of baseline (tons CO2 eq.)':GHG_total_emissions_baseline ,'GHG emissions of scenario (% of baseline)': round(GHG_emissions_fraction_of_baseline*100,2),'GHG emissions savings (tons CO2 eq.)': round(GHG_total_emissions_baseline - GHG_total_emissions_scenario,2),
+            'GHG emissions of baseline yearly(tons CO2 eq.)':GHG_total_emissions_baseline_yearly ,'GHG emissions of scenario (% of baseline)': round(GHG_emissions_fraction_of_baseline*100,2),'GHG emissions savings (tons CO2 eq.)': round(GHG_total_emissions_baseline - GHG_total_emissions_scenario,2),
             'Duration of experiment (h)': experiment_duration
             }
 
