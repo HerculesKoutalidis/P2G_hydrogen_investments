@@ -1,0 +1,47 @@
+,0
+description,wind_capex_409000wind f.opex_27400_wind marginal_0_solar_capex_272000solar f.opex_15250_solar marginal_0_H2_storage_capex_11300_H2_storage_marginal_0_H2 storage f.opex_225_electr.eff_0.64_electr.capex_550000_electr.f.opex_51214_electr. v.opex_1.33_MHA_0.4
+CAPEX(EUR),16546462.41
+Wind capex (%),40.89
+Solar capex (%),14.86
+Electrolysis capex (%),41.24
+H2 storage capex (%),3.02
+OPEX(EUR),13030219.58
+Wind Fix.Opex(%),34.78
+Wind Var.Opex(%),0.0
+Solar Fix.Opex(%),10.58
+Solar Var.Opex(%),0.0
+Electrolysis Fix.Opex(%),48.76
+Electrolysis Var.Opex(%),5.12
+H2 storage Fix.Opex(%),0.76
+H2 storage Var.Opex(%),0.0
+Obj.val (-NPV EUR),-15855335.63
+Theoretical obj.val (-NPV EUR),-15855397.95
+Difference (%) ,-0.0004
+Company horizon costs(EUR),29576681.99
+Capex(%),55.94
+Opex(%),44.06
+Company horizon income(EUR),47700210.17
+P2G(H2) income(%),100.0
+Company horizon net profit(EUR),18123528.18
+ROI(%),109.53
+Wind generation(%),71.58
+Solar generation(%),28.42
+Average electricity prod.cost(EUR/kWh),0.0
+Investment NPV (should be zero),15855335.63
+H2 sale price(EUR/kg),6.0
+Wind nom.installation(MW),165.411
+Wind av.capacity factor(% of p_nom),24.77
+Solar nom.installation(MW),90.3737
+Solar av.capacity factor(% of p_nom),17.99
+Electrolysis nominal installation(MW),124.058
+Electrolysis av.capacity factor(% of p_nom),46.13
+H2 storage size (kg),13270.3
+H2 storage av.storage level (%),41.6
+H2 av.injection per volume (%),26.3199
+H2 total production (tons):,7950.035
+H2 av. yearly production (tons):,7950.035
+NG energy demand covered by synthetic H2 (%),9.96
+GHG yearly emissions of baseline (tons CO2 eq.),650070.595
+GHG emissions of scenario (% of baseline),90.04
+GHG emissions savings (tons CO2 eq.),64766.48
+Duration of experiment (h),0.39

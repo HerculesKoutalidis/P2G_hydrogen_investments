@@ -21,7 +21,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     #%%
     n_years = 10         #n_years is the number of years to which the csv parameters such as capex refer to
-    simulation_years = 1#simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
+    simulation_years = simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
 
     solar_load_factor_timeseries_series, wind_load_factor_timeseries_series = solar_load_factor_timeseries, wind_load_factor_timeseries
     solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries), list(wind_load_factor_timeseries)
@@ -58,7 +58,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     NG_marginal_cost = input_parameters_data['NG_marginal_cost'][0]
 
     #Selling prices data
-    H2_sale_price_per_kg = 3.8#H2_selling_price_per_kg
+    H2_sale_price_per_kg = H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
 
     #Links data
@@ -74,9 +74,16 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #Max H2 admixture
     #power_ratio =  round(en_density_H2/en_density_ng*MHA/(1-MHA),4)
     power_ratio = round(HHV_H2* Mr_H2/(HHV_NG*Mr_ng) * MHA/(1-MHA),4)
+    
+    #A string to recognize which model and sensitivity scenario produced the data in the csv export files
+    recognition_string = 'wind_capex_'+str(wind_PPA_provider_capex)+'wind f.opex_'+str(wind_fixed_opex)+'_wind marginal_'+str(wind_PPA_provider_marginal)
+    recognition_string+= '_solar_capex_'+str(solar_PPA_provider_capex)+'solar f.opex_'+str(solar_fixed_opex)+'_solar marginal_'+str(solar_PPA_provider_marginal)
+    recognition_string+= '_H2_storage_capex_'+str(H2_storage_capex)+'_H2_storage_marginal_'+str(H2_storage_marginal)+'_H2 storage f.opex_'+str(H2_storage_fixed_opex)
+    recognition_string+= '_electr.eff_'+str(electrolysis_efficiency)+'_electr.capex_'+str(electrolysis_capex)+'_electr.f.opex_'+str(electrolysis_fixed_opex)+'_electr. v.opex_'+str(electrolysis_var_opex)
+    recognition_string+= '_MHA_'+str(MHA)
 
-    #%%
-    #Environmental/emissions parameters
+
+    #%%Environmental/emissions parameters
     wind_generation_CO2_emissions_per_MWh, solar_generation_CO2_emissions_per_MWh = 10, 13
     GHG_emissions_per_MWh_NG = 2.75 /HHV_NG/1000 #GHG emissions in kg of CO2 per MWh of combusted NG (209.9 kg CO2 /MWh of comb.NG @ LHV)
 
@@ -93,7 +100,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
         ng_demand_timeseries = ng_demand_timeseries[:24*365*simulation_years] 
 
 
-
+    
     #%% ############## NETWORK SETUP-PYPSA #############################
     ####################################################################
     network = pypsa.Network()
@@ -462,7 +469,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     
     #%%################## WRITE RESULTS TO CSV #############################
     #df = pd.DataFrame()
-    data = {'CAPEX(EUR)': [round(capex_costs,2)],'Wind capex (%)': [round(capex_WF/capex_costs*100,2)],'Solar capex (%)': [round(capex_SF/capex_costs*100,2)],'Electrolysis capex (%)': [round(capex_electrolyser/capex_costs*100,2)],'H2 storage capex (%)': [round(capex_H2_storage/capex_costs*100,2)],
+    data = {'description': recognition_string,
+            'CAPEX(EUR)': [round(capex_costs,2)],'Wind capex (%)': [round(capex_WF/capex_costs*100,2)],'Solar capex (%)': [round(capex_SF/capex_costs*100,2)],'Electrolysis capex (%)': [round(capex_electrolyser/capex_costs*100,2)],'H2 storage capex (%)': [round(capex_H2_storage/capex_costs*100,2)],
             'OPEX(EUR)': round(opex_costs_total,2) , 'Wind Fix.Opex(%)':round(fixed_opex_WF/opex_costs_total*100,2) ,'Wind Var.Opex(%)': round(WF_production_costs/opex_costs_total*100,2),
             'Solar Fix.Opex(%)': round(fixed_opex_SF/opex_costs_total*100,2),'Solar Var.Opex(%)': round(SF_production_costs/opex_costs_total*100,2),
             'Electrolysis Fix.Opex(%)': round(fixed_opex_electrolysis/opex_costs_total*100,2), 'Electrolysis Var.Opex(%)': round(electrolysis_var_opex_costs/opex_costs_total*100,2),
