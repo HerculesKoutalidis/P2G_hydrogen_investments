@@ -21,7 +21,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     #%%
     n_years = 10         #n_years is the number of years to which the csv parameters such as capex refer to
-    simulation_years = simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
+    simulation_years = 1#simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
 
     solar_load_factor_timeseries_series, wind_load_factor_timeseries_series = solar_load_factor_timeseries, wind_load_factor_timeseries
     solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries), list(wind_load_factor_timeseries)
@@ -58,7 +58,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     NG_marginal_cost = input_parameters_data['NG_marginal_cost'][0]
 
     #Selling prices data
-    H2_sale_price_per_kg = H2_selling_price_per_kg
+    H2_sale_price_per_kg = 3.7#H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
 
     #Links data
@@ -371,6 +371,22 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     
         theoretical_NPV+= cash_flow_of_year/(1+discount_rate)**year
 
+
+    #%%=============== LCOH calculation =========================================================== 
+    #LCOH numerator = levelized costs. LCOH denominator = levelized quant. of produced H2.
+    #Year 1
+    LCOH_numerator = capex_costs + expenses_y1
+    LCOH_denominator = - network.links_t.p1['H2_to_NG'][:365*24].sum()/HHV_H2 #kg of H2 produced in Y1
+
+    #Next years
+    for year in range(2, simulation_years+1):
+        ss_range = InvPeriodFrames_list[year-1]
+        LCOH_numerator += (network.links.T.loc['marginal_cost','P_to_H2']*network.links_t.p0.P_to_H2[ss_range].sum()  + fixed_opex_total_yearly)/(1+discount_rate)**year
+        LCOH_denominator += - network.links_t.p1['H2_to_NG'][ss_range].sum()/HHV_H2 /(1+discount_rate)**year #kg of H2 produced in that year
+
+    LCOH =   LCOH_numerator/LCOH_denominator #in €/kg H2
+
+
     #===============================================================================================
     #TECHNICAL statistics calculations
     wind_av_LF   = round(network.generators_t.p['wind_provider_PPA'].mean()/ (network.generators.loc['wind_provider_PPA','p_nom_opt']) ,4)
@@ -446,6 +462,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     print('ECONOMIC STATISTICS')
     print('Investment NPV (should be zero): ',round(-model_objval,2) )
     print('H2 sale price : ', round(H2_sale_price_per_kg,2), '€/kg')
+    print('LCOH: ', round(LCOH,5), '€/kg')
 
     print('\n =======================================')
     print('TECHNICAL')
@@ -479,7 +496,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             'Company horizon costs(EUR)': round(costs_total,2), 'Capex(%)': round(capex_costs/costs_total*100,2),'Opex(%)':round(opex_costs_total/costs_total*100,2) , 'Company horizon income(EUR)':round(INCOMEv,2) , 'P2G(H2) income(%)':  round(H2_SALES_INCOMEv/INCOMEv*100,2),'Company horizon net profit(EUR)':round(net_income,2) ,
             'ROI(%)': round(net_income/capex_costs*100,2),
             'Wind generation(%)': round(energy_from_wind_generation/total_el_energy_production*100,2), 'Solar generation(%)': round(energy_from_solar_generation/total_el_energy_production*100,2),
-            'Average electricity prod.cost(EUR/kWh)': average_el_price_per_kWh,'Investment NPV (should be zero)': round(-model_objval,2), 'H2 sale price(EUR/kg)': round(H2_sale_price_per_kg,2),
+            'Average electricity prod.cost(EUR/kWh)': average_el_price_per_kWh,'Investment NPV (should be zero)': round(-model_objval,2), 'H2 sale price(EUR/kg)': round(H2_sale_price_per_kg,2), 'LCOH(EUR/kg)': round(LCOH,5),
             'Wind nom.installation(MW)': round(network.generators.loc['wind_provider_PPA','p_nom_opt'],5), 'Wind av.capacity factor(% of p_nom)': round(wind_av_LF*100,2),
             'Solar nom.installation(MW)': round(network.generators.loc['solar_provider_PPA','p_nom_opt'],5), 'Solar av.capacity factor(% of p_nom)': round(solar_av_LF*100,2),
             'Electrolysis nominal installation(MW)': round(network.links.T.P_to_H2['p_nom_opt'],4) , 'Electrolysis av.capacity factor(% of p_nom)': round(electrolysis_av_LF*100,5),

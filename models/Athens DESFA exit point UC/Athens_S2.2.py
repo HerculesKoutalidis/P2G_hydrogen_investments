@@ -73,7 +73,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     power_ratio = round(HHV_H2* Mr_H2/(HHV_NG*Mr_ng) * MHA/(1-MHA),4)
     
     #Selling prices data
-    H2_sale_price_per_kg = 4.7#H2_selling_price_per_kg
+    H2_sale_price_per_kg = 4.3#H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
     
     recognition_string = 'wind_capex_'+str(wind_PPA_provider_capex)+'wind f.opex_'+str(wind_fixed_opex)+'_wind marginal_'+str(wind_PPA_provider_marginal)
@@ -381,6 +381,22 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
         #print('cash_flow_of_year ',year,' : ', cash_flow_of_year)
         theoretical_NPV+= cash_flow_of_year/(1+discount_rate)**year #OK
 
+
+
+    #%%=============== LCOH calculation =========================================================== 
+    #LCOH numerator = levelized costs. LCOH denominator = levelized quant. of produced H2.
+    #Year 1
+    LCOH_numerator = capex_costs + expenses_y1
+    LCOH_denominator = - network.links_t.p1['H2_to_NG'][:365*24].sum()/HHV_H2 #kg of H2 produced in Y1
+
+    #Next years
+    for year in range(2, simulation_years+1):
+        ss_range = InvPeriodFrames_list[year-1]
+        LCOH_numerator += (network.links.T.loc['marginal_cost','P_to_H2']*network.links_t.p0.P_to_H2[ss_range].sum()  + fixed_opex_total_yearly)/(1+discount_rate)**year
+        LCOH_denominator += - network.links_t.p1['H2_to_NG'][ss_range].sum()/HHV_H2 /(1+discount_rate)**year #kg of H2 produced in that year
+
+    LCOH =   LCOH_numerator/LCOH_denominator #in €/kg H2
+
     #===============================================================================================
     #TECHNICAL statistics calculations
     wind_av_LF   = round(network.generators_t.p['wind_provider_PPA'].mean()/ (network.generators.loc['wind_provider_PPA','p_nom_opt']) ,4)
@@ -455,6 +471,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     print('=======================================')
     print('ECONOMIC STATISTICS')
     print('H2 sale price : ', round(H2_sale_price_per_kg,2), '€/kg')
+    print('LCOH: ', round(LCOH,5), '€/kg')
 
     print('=======================================')
     print('TECHNICAL')
@@ -489,7 +506,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             'Company horizon costs(EUR)': round(costs_total,2), 'Capex(%)': round(capex_costs/costs_total*100,2),'Opex(%)':round(opex_costs_total/costs_total*100,2) , 'Company horizon income(EUR)':round(INCOMEv,2) , 'P2G(H2) income(%)':  round(H2_SALES_INCOMEv/INCOMEv*100,2),'Company horizon net profit(EUR)':round(net_income,2) ,
             'ROI(%)': round(net_income/capex_costs*100,2),
             'Wind generation(%)': round(energy_from_wind_generation/total_el_energy_production*100,2), 'Solar generation(%)': round(energy_from_solar_generation/total_el_energy_production*100,2),
-            'Average electricity prod.cost(EUR/kWh)': average_el_price_per_kWh,'Investment NPV (should be zero)': round(-model_objval,2), 'H2 sale price(EUR/kg)': round(H2_sale_price_per_kg,2),
+            'Average electricity prod.cost(EUR/kWh)': average_el_price_per_kWh,'Investment NPV (should be zero)': round(-model_objval,2), 'H2 sale price(EUR/kg)': round(H2_sale_price_per_kg,2),  'LCOH(EUR/kg)': round(LCOH,5),
             'Wind nom.installation(MW)': round(network.generators.loc['wind_provider_PPA','p_nom_opt'],5), 'Wind av.capacity factor(% of p_nom)': round(wind_av_LF*100,2),
             'Solar nom.installation(MW)': round(network.generators.loc['solar_provider_PPA','p_nom_opt'],5), 'Solar av.capacity factor(% of p_nom)': round(solar_av_LF*100,2),
             'Electrolysis nominal installation(MW)': round(network.links.T.P_to_H2['p_nom_opt'],4) , 'Electrolysis av.capacity factor(% of p_nom)': round(electrolysis_av_LF*100,5),
