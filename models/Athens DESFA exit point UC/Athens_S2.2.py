@@ -40,6 +40,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     wind_PPA_provider_capex, solar_PPA_provider_capex = input_parameters_data['wind_capex'][0] , input_parameters_data['solar_capex'][0]
     wind_fixed_opex, solar_fixed_opex = input_parameters_data['wind_fixed_opex'][0], input_parameters_data['solar_fixed_opex'][0]
     wind_PPA_provider_marginal, solar_PPA_provider_marginal = input_parameters_data['wind_marginal'][0], input_parameters_data['solar_marginal'][0]
+    tax_on_energy = 0.06
 
     #H2 storage data
     H2_store_name  = 'H2 depot' 
@@ -56,7 +57,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     electrolysis_capex = input_parameters_data['electrolysis_capex'][0]
     electrolysis_fixed_opex = input_parameters_data['electrolysis_fixed_opex'][0]
     electrolysis_TSO_cost_per_MW_per_year= 37464 #TSO transmission charge in €/MW/year
-    electrolysis_fixed_opex += electrolysis_TSO_cost_per_MW_per_year
+    tax_on_TSO_fee = 0.06 #tax on TSO fee (%)
+    electrolysis_fixed_opex += electrolysis_TSO_cost_per_MW_per_year*(1+tax_on_TSO_fee)  #add TSO fee, and its corresponding tax
     electrolysis_var_opex = input_parameters_data['electrolysis_variable_opex'][0]
     charge_efficiency, discharge_efficiency, H2_transport_efficiency = 0.99, 0.99, 0.99
 
@@ -73,7 +75,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     power_ratio = round(HHV_H2* Mr_H2/(HHV_NG*Mr_ng) * MHA/(1-MHA),4)
     
     #Selling prices data
-    H2_sale_price_per_kg = 4.3#H2_selling_price_per_kg
+    H2_sale_price_per_kg = 4#H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
     
     recognition_string = 'wind_capex_'+str(wind_PPA_provider_capex)+'wind f.opex_'+str(wind_fixed_opex)+'_wind marginal_'+str(wind_PPA_provider_marginal)
@@ -127,7 +129,6 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             carrier= 'AC',
             marginal_cost = wind_PPA_provider_marginal,
             p_nom_extendable= True , 
-            #p_nom_max = 30,
             p_max_pu= wind_load_factor_timeseries,
             capital_cost= wind_PPA_provider_capex,)
 
@@ -138,7 +139,6 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             carrier= 'AC',
             marginal_cost = solar_PPA_provider_marginal,
             p_nom_extendable= True , 
-            #p_nom_max = 30, 
             p_max_pu= solar_load_factor_timeseries,
             capital_cost=solar_PPA_provider_capex,)
 
@@ -240,9 +240,9 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     CFY1 = (model.variables['Link-p'].loc[InvPeriodFrames_list[0],'H2_to_NG'].sum() * H2_transport_efficiency* H2_sale_price_per_MWh - #H2 sales income  
             
             #model.variables['Generator-p'].loc[InvPeriodFrames_list[0],'wind_provider_PPA'].sum()* wind_PPA_provider_marginal -      #wind var.opex
-            sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) *  model.variables['Generator-p_nom'].loc['wind_provider_PPA'] *wind_PPA_provider_marginal- # wind var.opex  
+            sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) *  model.variables['Generator-p_nom'].loc['wind_provider_PPA'] *wind_PPA_provider_marginal*(1+tax_on_energy)- # wind var.opex : pay electricity cost and tax on electricity
             #model.variables['Generator-p'].loc[InvPeriodFrames_list[0],'solar_provider_PPA'].sum()* solar_PPA_provider_marginal -    #solar var opex      
-            sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) *  model.variables['Generator-p_nom'].loc['solar_provider_PPA']*solar_PPA_provider_marginal- # solar var.opex 
+            sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) *  model.variables['Generator-p_nom'].loc['solar_provider_PPA']*solar_PPA_provider_marginal*(1+tax_on_energy)- # solar var.opex : pay electricity cost and tax on electricity
             model.variables['Link-p'].loc[InvPeriodFrames_list[0],'P_to_H2'].sum()*network.links.T.P_to_H2['marginal_cost'] - #electrolyzer variable opex 
             total_fixed_opex_per_year # fixed opex for Y1  
         )
@@ -255,9 +255,9 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
         cash_flow_of_year = (model.variables['Link-p'].loc[ss_range,'H2_to_NG'].sum() * H2_transport_efficiency* H2_sale_price_per_MWh - #income from H2 sales 
                             
                             #model.variables['Generator-p'].loc[ss_range,'wind_provider_PPA'].sum()* wind_PPA_provider_marginal  -  #wind var.opex
-                            sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]]) *  model.variables['Generator-p_nom'].loc['wind_provider_PPA']*wind_PPA_provider_marginal- # wind var.opex  
+                            sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]]) *  model.variables['Generator-p_nom'].loc['wind_provider_PPA']*wind_PPA_provider_marginal*(1+tax_on_energy)- # wind var.opex : pay electricity cost and tax on electricity
                             #model.variables['Generator-p'].loc[ss_range,'solar_provider_PPA'].sum()* solar_PPA_provider_marginal - #solar.var opex  
-                            sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]]) *  model.variables['Generator-p_nom'].loc['solar_provider_PPA']*solar_PPA_provider_marginal- # solar var.opex
+                            sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]]) *  model.variables['Generator-p_nom'].loc['solar_provider_PPA']*solar_PPA_provider_marginal*(1+tax_on_energy)- # solar var.opex : pay electricity cost and tax on electricity
                             model.variables['Link-p'].loc[ss_range,'P_to_H2'].sum()*network.links.T.P_to_H2['marginal_cost']-  #electrolysis variable opex  
                             total_fixed_opex_per_year #total fixed opex for that year 
                             )
@@ -279,8 +279,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     ###############################################################################################################
     #Costs calculations
     #marginal costs 
-    WF_procurement_costs = sum(wind_load_factor_timeseries) * network.generators.loc['wind_provider_PPA','p_nom_opt']* network.generators.loc['wind_provider_PPA','marginal_cost']
-    SF_procurement_costs = sum(solar_load_factor_timeseries) *network.generators.loc['solar_provider_PPA','p_nom_opt']* network.generators.loc['solar_provider_PPA','marginal_cost']
+    WF_procurement_costs = sum(wind_load_factor_timeseries) * network.generators.loc['wind_provider_PPA','p_nom_opt']* network.generators.loc['wind_provider_PPA','marginal_cost']*(1+tax_on_energy)
+    SF_procurement_costs = sum(solar_load_factor_timeseries) *network.generators.loc['solar_provider_PPA','p_nom_opt']* network.generators.loc['solar_provider_PPA','marginal_cost']*(1+tax_on_energy)
     NGG_production_costs= network.generators_t.p['NG Generator'].sum() * network.generators.loc['NG Generator','marginal_cost']
 
     energy_procurement_costs =  WF_procurement_costs + SF_procurement_costs+ NGG_production_costs
@@ -359,9 +359,9 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #Year 1
     income_y1 = - network.links_t.p1['H2_to_NG'][:365*24].sum() *H2_sale_price_per_MWh #
     #expenses_y1+= network.generators_t.p['wind_provider_PPA'][:365*24].sum() * wind_PPA_provider_marginal   #wind var.opex for Y1
-    expenses_y1+=  sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) * network.generators.loc['wind_provider_PPA','p_nom_opt']*wind_PPA_provider_marginal #wind var.opex for Y1
+    expenses_y1+=  sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) * network.generators.loc['wind_provider_PPA','p_nom_opt']*wind_PPA_provider_marginal*(1+tax_on_energy) #wind var.opex for Y1
     #expenses_y1+= network.generators_t.p['solar_provider_PPA'][:365*24].sum() * solar_PPA_provider_marginal # solar var.opex for Y1  
-    expenses_y1+=  sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) * network.generators.loc['solar_provider_PPA','p_nom_opt']*solar_PPA_provider_marginal #solar var.opex for Y1
+    expenses_y1+=  sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]]) * network.generators.loc['solar_provider_PPA','p_nom_opt']*solar_PPA_provider_marginal*(1+tax_on_energy) #solar var.opex for Y1
     expenses_y1+= network.links.T.loc['marginal_cost','P_to_H2']*network.links_t.p0.P_to_H2[:365*24].sum() #electrolysis var opex 
     expenses_y1+= fixed_opex_total_yearly #fixed opex of Y1 
     cash_flow_y1 = income_y1 -expenses_y1
@@ -372,9 +372,9 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
         ss_range = InvPeriodFrames_list[year-1]
         cash_flow_of_year = ( - network.links_t.p1['H2_to_NG'][ss_range].sum() *H2_sale_price_per_MWh - #income from H2 sales                 
                                 #network.generators_t.p['wind_provider_PPA'][ss_range].sum() * wind_PPA_provider_marginal -  # wind var.opex 
-                                sum([wind_load_factor_timeseries[t-1] for t in ss_range]) * network.generators.loc['wind_provider_PPA','p_nom_opt']*wind_PPA_provider_marginal- #wind var.opex 
+                                sum([wind_load_factor_timeseries[t-1] for t in ss_range]) * network.generators.loc['wind_provider_PPA','p_nom_opt']*wind_PPA_provider_marginal*(1+tax_on_energy)- #wind var.opex 
                                 #network.generators_t.p['solar_provider_PPA'][ss_range].sum() * solar_PPA_provider_marginal- # solar var.opex 
-                                sum([solar_load_factor_timeseries[t-1] for t in ss_range]) * network.generators.loc['solar_provider_PPA','p_nom_opt']*solar_PPA_provider_marginal- #solar var.opex
+                                sum([solar_load_factor_timeseries[t-1] for t in ss_range]) * network.generators.loc['solar_provider_PPA','p_nom_opt']*solar_PPA_provider_marginal*(1+tax_on_energy)- #solar var.opex
                                 network.links.T.loc['marginal_cost','P_to_H2']*network.links_t.p0.P_to_H2[ss_range].sum()- #electrolysis var OPEX OK
                                 fixed_opex_total_yearly #total fixed opex for that year OK
                             )
