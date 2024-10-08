@@ -30,7 +30,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries)*n_years, list(wind_load_factor_timeseries)*n_years
 
     #Loads input data
-    h2_demand_timeseries = [99999999 for t in range(365)]*n_years # "infinite" demand of H2
+    h2_demand_timeseries = [99999999999 for t in range(365)]*n_years # "infinite" demand of H2
 
     #Models Parameters input data
     input_parameters_dir = '../../models_inputs/models_input_parameters/daily resolution oil refinery'
@@ -101,11 +101,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     network.add("Bus", "Bus AC", carrier="AC")
     network.add("Bus", "Bus H2_1", carrier="H2")
     network.add("Bus", "Bus H2_2", carrier="H2")
-    network.add("Bus", "Bus NG", carrier="NG")
-        
-    #Add carriers 
-    #for carrier_name in carriers_names:
-    #    network3.add("Carrier", carrier_name, co2_emissions = list(CO2_data[CO2_data['Carrier'] == carrier_name]['Emissions(t/Mwh of primary energy)'])[0])
+    network.add("Bus", "Bus NG", carrier="NG")     
 
     #Add loads
     network.add('Load', name= 'H2 load', bus = 'Bus NG', p_set = h2_demand_timeseries)
@@ -390,6 +386,9 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     H2_total_production_in_tons = -network.links_t.p1['H2_to_NG'].sum()/LHV_H2/1000 #multiplied by 1000 to obtain kWh, divided by LHV to obtain kg of H2, divided by 1000 to obtain tons
 
     #ENVIRONEMNTAL statistics calculations
+    grey_hydrogen_typical_emissions_per_kg = 10 #tons of CO2 eq. per ton of grey H2
+    blue_hydrogen_typical_emissions_per_kg = 3  #tons of CO2 eq. per ton of blue H2
+    emissions_w_grey_hydrogen,emissions_w_blue_hydrogen  = H2_total_production_in_tons*grey_hydrogen_typical_emissions_per_kg, H2_total_production_in_tons*blue_hydrogen_typical_emissions_per_kg
 
 
     #===============================================================================================
@@ -463,7 +462,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     
     #%%################## WRITE RESULTS TO CSV #############################
     df = pd.DataFrame()
-    data = {'CAPEX(EUR)': [round(capex_costs,2)],'Wind capex (%)': [round(capex_WF/capex_costs*100,2)],'Solar capex (%)': [round(capex_SF/capex_costs*100,2)],'Electrolysis capex (%)': [round(capex_electrolyser/capex_costs*100,2)],'H2 storage capex (%)': [round(capex_H2_storage/capex_costs*100,2)],
+    data = {'Info': f'daily resolution, {simulation_years} sim.years, oil refinery UC, S2.1',
+            'CAPEX(EUR)': [round(capex_costs,2)],'Wind capex (%)': [round(capex_WF/capex_costs*100,2)],'Solar capex (%)': [round(capex_SF/capex_costs*100,2)],'Electrolysis capex (%)': [round(capex_electrolyser/capex_costs*100,2)],'H2 storage capex (%)': [round(capex_H2_storage/capex_costs*100,2)],
             'OPEX(EUR)': round(opex_costs_total,2) , 'Wind Fix.Opex(%)':round(fixed_opex_WF/opex_costs_total*100,2) ,'Wind Var.Opex(%)': round(WF_production_costs/opex_costs_total*100,2),
             'Solar Fix.Opex(%)': round(fixed_opex_SF/opex_costs_total*100,2),'Solar Var.Opex(%)': round(SF_production_costs/opex_costs_total*100,2),
             'Electrolysis Fix.Opex(%)': round(fixed_opex_electrolysis/opex_costs_total*100,2), 'Electrolysis Var.Opex(%)': round(electrolysis_var_opex_costs/opex_costs_total*100,2),
@@ -472,12 +472,13 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             'Company horizon costs(EUR)': round(costs_total,2), 'Capex(%)': round(capex_costs/costs_total*100,2),'Opex(%)':round(opex_costs_total/costs_total*100,2) , 'Company horizon income(EUR)':round(INCOMEv,2) , 'P2G(H2) income(%)':  round(H2_SALES_INCOMEv/INCOMEv*100,2),'Company horizon net profit(EUR)':round(net_income,2) ,
             'ROI(%)': round(net_income/capex_costs*100,2),
             'Wind generation(%)': round(energy_from_wind_generation/total_el_energy_production*100,2), 'Solar generation(%)': round(energy_from_solar_generation/total_el_energy_production*100,2),
-            'Average electricity prod.cost(EUR/kWh)': average_el_price_per_kWh,'Investment NPV (should be zero)': round(-model_objval,2), 'H2 sale price(EUR/kg)': round(H2_sale_price_per_kg,2),
+            'Average electricity prod.cost(EUR/kWh)': average_el_price_per_kWh,'Investment NPV (should be zero)': round(-model_objval,2), 'H2 sale price(EUR/kg)': round(H2_sale_price_per_kg,3),
             'Wind nom.installation(MW)': round(network.generators.loc['wind_provider_PPA','p_nom_opt'],5), 'Wind av.capacity factor(% of p_nom)': round(wind_av_LF*100,2),
             'Solar nom.installation(MW)': round(network.generators.loc['solar_provider_PPA','p_nom_opt'],5), 'Solar av.capacity factor(% of p_nom)': round(solar_av_LF*100,2),
             'Electrolysis nominal installation(MW)': round(network.links.T.P_to_H2['p_nom_opt'],4) , 'Electrolysis av.capacity factor(% of p_nom)': round(electrolysis_av_LF*100,5),
             'H2 storage size (kg)': H2_storage_capacity_kg ,'H2 storage av.storage level (%)': round(H2_storage_av_level*100,2), 
-            'H2 total production (tons):': round(H2_total_production_in_tons,2),
+            'H2 total production (tons):': round(H2_total_production_in_tons,2),'H2 yearly production (tons):': round(H2_total_production_in_tons/simulation_years,2),
+            'Savings compared to grey H2 (tons of CO2 eq):': round(emissions_w_grey_hydrogen,2), 'Savings compared to blue H2 (tons of CO2 eq):': round(emissions_w_blue_hydrogen,2),   
             'Duration of experiment (h)': experiment_duration
             }
 

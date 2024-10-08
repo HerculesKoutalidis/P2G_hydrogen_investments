@@ -14,28 +14,28 @@ Electrolysis Fix.Opex(%),20.79
 Electrolysis Var.Opex(%),10.66
 H2 storage Fix.Opex(%),0.0
 H2 storage Var.Opex(%),0.0
-Obj.val (-NPV EUR),-1618908.9
-Theoretical obj.val (_NPV EUR),-1618870.96
-Difference (%) ,0.0023
+Obj.val (-NPV EUR),-1727196.44
+Theoretical obj.val (_NPV EUR),-1727158.42
+Difference (%) ,0.0022
 Company horizon costs(EUR),114787337.46
 Capex(%),65.69
 Opex(%),34.31
-Company horizon income(EUR),124799905.31
+Company horizon income(EUR),124919905.22
 P2G(H2) income(%),100.0
-Company horizon net profit(EUR),10012567.85
-ROI(%),13.28
-Wind generation(%),65.16
-Solar generation(%),34.84
+Company horizon net profit(EUR),10132567.76
+ROI(%),13.44
+Wind generation(%),65.42
+Solar generation(%),34.58
 Average electricity prod.cost(EUR/kWh),0.0
-Investment NPV (should be zero),1618908.9
+Investment NPV (should be zero),1727196.44
 H2 sale price(EUR/kg),2.08
 Wind nom.installation(MW),344.976
-Wind av.capacity factor(% of p_nom),34.03
+Wind av.capacity factor(% of p_nom),34.17
 Solar nom.installation(MW),265.366
-Solar av.capacity factor(% of p_nom),23.65
+Solar av.capacity factor(% of p_nom),23.48
 Electrolysis nominal installation(MW),297.715
 Electrolysis av.capacity factor(% of p_nom),60.52
 H2 storage size (kg),0.0
 H2 storage av.storage level (%),
 H2 total production (tons):,59999.95
-Duration of experiment (h),1.5
+Duration of experiment (h),1.37

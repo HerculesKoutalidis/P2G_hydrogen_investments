@@ -1,0 +1,44 @@
+,0
+Info,"daily resolution, 3 sim.years, oil refinery UC, S2.1"
+CAPEX(EUR),90510008.4
+Wind capex (%),38.52
+Solar capex (%),24.77
+Electrolysis capex (%),36.71
+H2 storage capex (%),0.0
+OPEX(EUR),50531589.96
+Wind Fix.Opex(%),46.23
+Wind Var.Opex(%),0.0
+Solar Fix.Opex(%),24.88
+Solar Var.Opex(%),0.0
+Electrolysis Fix.Opex(%),16.44
+Electrolysis Var.Opex(%),12.46
+H2 storage Fix.Opex(%),0.0
+H2 storage Var.Opex(%),0.0
+Obj.val (-NPV EUR),-28964828.85
+Theoretical obj.val (-NPV EUR),-28964936.61
+Difference (%) ,-0.0004
+Company horizon costs(EUR),141041598.36
+Capex(%),64.17
+Opex(%),35.83
+Company horizon income(EUR),187109970.36
+P2G(H2) income(%),100.0
+Company horizon net profit(EUR),46068372.01
+ROI(%),50.9
+Wind generation(%),61.95
+Solar generation(%),38.05
+Average electricity prod.cost(EUR/kWh),0.0
+Investment NPV (should be zero),28964828.85
+H2 sale price(EUR/kg),2.079
+Wind nom.installation(MW),284.168
+Wind av.capacity factor(% of p_nom),39.28
+Solar nom.installation(MW),274.753
+Solar av.capacity factor(% of p_nom),24.95
+Electrolysis nominal installation(MW),201.35
+Electrolysis av.capacity factor(% of p_nom),89.48
+H2 storage size (kg),0.0
+H2 storage av.storage level (%),
+H2 total production (tons):,89999.99
+H2 yearly production (tons):,30000.0
+Savings compared to grey H2 (tons of CO2 eq):,899999.86
+Savings compared to blue H2 (tons of CO2 eq):,269999.96
+Duration of experiment (h),0.0
