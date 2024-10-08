@@ -662,14 +662,14 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Multiprocessing with argparse, with multiple H2 sale prices as parameters.")
-    parser.add_argument('-v1',"--value1", type=float, default= 3.5, help="H2 price value ")
-    parser.add_argument('-v2',"--value2", type=float, default= 4, help="H2 price value ")
-    parser.add_argument('-v3',"--value3", type=float, default= 5, help="H2 price value ")
-    parser.add_argument('-v4',"--value4", type=float, default= 6, help="H2 price value ")
-    parser.add_argument('-v5',"--value5", type=float, default= 8, help="H2 price value ")
-    parser.add_argument('-y',"--simulation_years", type=int, default= 1, help="Number of simulation horizon years (integer). From 1 to 10 ")
+    parser.add_argument('-hp1',"--hydrogen_price1", type=float, default= 3.5, help="H2 price value ")
+    parser.add_argument('-hp2',"--hydrogen_price2", type=float, default= 4, help="H2 price value ")
+    parser.add_argument('-hp3',"--hydrogen_price3", type=float, default= 5, help="H2 price value ")
+    parser.add_argument('-hp4',"--hydrogen_price4", type=float, default= 6, help="H2 price value ")
+    parser.add_argument('-hp5',"--hydrogen_price5", type=float, default= 8, help="H2 price value ")
+    parser.add_argument('-y',"--simulation_years", type=int, default= 1, help="Number of simulation horizon years (integer). From 1 to 5 ")
     args = parser.parse_args()
-    H2_sales_prices_list = [args.value1, args.value2, args.value3,args.value4, args.value5]
+    H2_sales_prices_list = [args.hydrogen_price1, args.hydrogen_price2, args.hydrogen_price3,args.hydrogen_price4, args.hydrogen_price5]
     simulation_horizon_number_of_years = args.simulation_years
 
     # Create and start worker processes
