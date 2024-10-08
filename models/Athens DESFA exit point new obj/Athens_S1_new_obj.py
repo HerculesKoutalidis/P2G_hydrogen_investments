@@ -298,7 +298,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
         cash_flow_of_year = Inc_from_H2_year + Inc_salv_ann -( Cinv_ann + Cfix_opex_ann + Crep_ann) - Cvar_opex_year   #Cash flow of that year                    
         objective_function_model+= cash_flow_of_year  
 
-    #Solve model with minus NPV as obj function.
+    #Obj.function definition (minus ann. cash flow)
     model.objective =   -objective_function_model
 
     #SOLVE
@@ -416,7 +416,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     
     #Total opex calcs.
     opex_costs_ann = fixed_opex_ann + var_opex_ann
-    opex_costs_total = opex_costs_ann * simulation_years #(?)
+    opex_costs_nom_total = opex_costs_ann * project_lifetime #(?)
     opex_costs_project = opex_costs_ann *PLMF
     
     #Replacement costs calculations
@@ -447,12 +447,13 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     #Total income calcs.
     income_ann =  h2_income_ann + salv_inc_ann
+    income_nom_total = income_ann * project_lifetime
     income_project = income_ann *PLMF
 
     #Net profit calcs.
     cash_flow_ann = income_ann - costs_ann
     NPV = cash_flow_ann * PLMF  #(?)
-    Net_nom_profit_project =  income_ann*project_lifetime - capex_costs_project - opex_costs_total
+    Net_nom_profit_project =  income_nom_total - capex_costs_project - opex_costs_nom_total
 
 
     #Other calculations--------------------------------------------------------------------------------------------
