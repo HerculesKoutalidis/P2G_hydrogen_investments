@@ -21,7 +21,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     #%%
     n_years = 10         #n_years is the number of years to which the csv parameters such as capex refer to
-    simulation_years = 1#simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
+    simulation_years = simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
     project_lifetime = 25 #duration of the project horizon
     
     solar_load_factor_timeseries_series, wind_load_factor_timeseries_series = solar_load_factor_timeseries, wind_load_factor_timeseries
@@ -37,6 +37,9 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     input_parameters_data = pd.read_csv('./Data/input_parameters_S2.1.csv')
 
      #%%######################### NETWORK PARAMETERS #######################
+    #Sensitivity scenario
+    sensitivity_analysis_scenario = str(input_parameters_data['sensitivity_analysis_scenario'][0])
+
     #Generators data
     wind_PPA_provider_capex, solar_PPA_provider_capex = input_parameters_data['wind_capex'][0] , input_parameters_data['solar_capex'][0]
     wind_fixed_opex, solar_fixed_opex = input_parameters_data['wind_fixed_opex'][0], input_parameters_data['solar_fixed_opex'][0]
@@ -63,7 +66,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     NG_marginal_cost = input_parameters_data['NG_marginal_cost'][0]
 
     #Selling prices data
-    H2_sale_price_per_kg = 5#H2_selling_price_per_kg
+    H2_sale_price_per_kg = H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
 
     #Links data
@@ -513,7 +516,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     LCOH =   costs_project/(H2_production_project  * 1000) #mult. by 1000 to obtain kg
     
     #===============================================================================================
-    theoretical_objval =  -round( objective_function_th ,6)#round(-(INCOMEv - EXPENSESv),2)#round(marginal_costs + capex_costs,2)
+    theoretical_objval =  -round( objective_function_th ,6)
     model_objval = round(network.objective,6)
 
     #======================================================================================
@@ -597,15 +600,16 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #%%################## WRITE RESULTS TO CSV #############################
     #df = pd.DataFrame()
     data = {'description': recognition_string,
-            'CAPEX(EUR, PV)': [round(capex_costs_project,2)],'Wind capex (%)': [round(capex_WF_project/capex_costs_project*100,2)],'Solar capex (%)': [round(capex_SF_project/capex_costs_project*100,2)],'Electrolysis capex (%)': [round(capex_electrolyzer_project/capex_costs_project*100,2)],'H2 storage capex (%)': [round(capex_H2_storage_project/capex_costs_project*100,2)],
-            'OPEX(EUR, PV)': round(opex_costs_project,2) , 'Wind Fix.Opex(%)':round(fixed_opex_WF_project/opex_costs_project*100,2) ,'Wind Var.Opex(%)': round(wind_var_opex_project/opex_costs_project*100,2),
+            'Sensitivity analysis scenario': sensitivity_analysis_scenario,
+            'CAPEX(EUR@PV)': [round(capex_costs_project,2)],'Wind capex (%)': [round(capex_WF_project/capex_costs_project*100,2)],'Solar capex (%)': [round(capex_SF_project/capex_costs_project*100,2)],'Electrolysis capex (%)': [round(capex_electrolyzer_project/capex_costs_project*100,2)],'H2 storage capex (%)': [round(capex_H2_storage_project/capex_costs_project*100,2)],
+            'OPEX(EUR@PV)': round(opex_costs_project,2) , 'Wind Fix.Opex(%)':round(fixed_opex_WF_project/opex_costs_project*100,2) ,'Wind Var.Opex(%)': round(wind_var_opex_project/opex_costs_project*100,2),
             'Solar Fix.Opex(%)': round(fixed_opex_SF_project/opex_costs_project*100,2),'Solar Var.Opex(%)': round(solar_var_opex_project/opex_costs_project*100,2),
             'Electrolysis Fix.Opex(%)': round(fixed_opex_electrolysis_project/opex_costs_project*100,2), 'Electrolysis Var.Opex(%)': round(electrolysis_var_opex_project/opex_costs_project*100,2),
             'H2 storage Fix.Opex(%)': round(fixed_opex_H2_storage_project/opex_costs_project*100,2) , 'H2 storage Var.Opex(%)': round(H2_storage_var_opex_costs_sim/opex_costs_project*100,2) ,
             'Replacement costs (EUR, PV)': round(rep_costs_project,2), 'Electrolysis repl. (%)': round(rep_costs_electrolyzer_project/rep_costs_project*100,2), 'H2 storage repl. (%)': round(rep_costs_storage_project/rep_costs_project*100,2),
-            'Obj.val (-NPV EUR)': round(model_objval,2), 'Theoretical obj.val (_NPV EUR)': round(theoretical_objval,2), 'Difference (%) ': round((model_objval - theoretical_objval)/model_objval*100,4),
-            'Company horizon costs(EUR, PV)': round(costs_project,2), 'Capex(%)': round(capex_costs_project/costs_project*100,2),'Opex(%)':round(opex_costs_project/costs_project*100,2) , 'Replacement(%)': round(rep_costs_project/costs_project*100,2),
-            'Company horizon income(EUR, PV)':round(income_project,2) , 'P2G(H2) income(%)':  round(h2_income_project/income_project*100,2),'Salvage income(%)': round(salv_inc_project/income_project*100,2),'Company horizon net nom.profit(EUR)':round(Net_nom_profit_project,2) ,
+            'Obj.val (-ann.cash flow EUR)': round(model_objval,2), 'Theoretical obj.val (_NPV EUR)': round(theoretical_objval,2), 'Difference (%) ': round((model_objval - theoretical_objval)/model_objval*100,4),
+            'Company horizon costs(EUR@PV)': round(costs_project,2), 'Capex(%)': round(capex_costs_project/costs_project*100,2),'Opex(%)':round(opex_costs_project/costs_project*100,2) , 'Replacement(%)': round(rep_costs_project/costs_project*100,2),
+            'Company horizon income(EUR@PV)':round(income_project,2) , 'P2G(H2) income(%)':  round(h2_income_project/income_project*100,2),'Salvage income(%)': round(salv_inc_project/income_project*100,2),'Company horizon net nom.profit(EUR)':round(Net_nom_profit_project,2) ,
             'ROI(%)': round(Net_nom_profit_project/capex_costs_project*100,2),
             'Wind generation(%)': round(energy_from_wind_generation/total_el_energy_production*100,2), 'Solar generation(%)': round(energy_from_solar_generation/total_el_energy_production*100,2),
             'Average electricity prod.cost(EUR/kWh)': average_el_price_per_kWh,'Investment NPV (should be zero)': round(NPV,2), 'H2 sale price(EUR/kg)': round(H2_sale_price_per_kg,2),  'LCOH(EUR/kg)': round(LCOH,5),
@@ -623,9 +627,9 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     df = pd.DataFrame(data)
     df = df.T
     #H2_sale_price_per_kg,H2_selling_price_per_kg =3.15, 3.15
-    save_results_dir =  f'ATH_S1_{simulation_years}Y_H2_price_{H2_sale_price_per_kg}_EUR_per_kg'
+    save_results_dir =  f'ATH_S1_{simulation_years}Y_{sensitivity_analysis_scenario}_H2_price_{H2_sale_price_per_kg}_EUR_per_kg'
     df.to_csv(save_results_dir)
-    print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_selling_price_per_kg}. ===================')
+    print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_sale_price_per_kg}. ===================')
     
     #%%################### WRITE USEFUL TIMESERIES RESULTS TO CSV ####################
     wind_nom_capacity, solar_nom_capacity = network.generators.loc['wind_provider_PPA','p_nom_opt'], network.generators.loc['solar_provider_PPA','p_nom_opt']
@@ -642,7 +646,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     H2_injection_to_grid_ts = -network.links_t.p1['H2_to_NG'] #in MWh thermal. Divide with HHV_H2 to obtain kg of H2
 
     horizontal_concat = pd.concat([actual_wind_cf_ts, actual_solar_cf_ts,ng_supply_ts, electrolysis_cf_ts,H2_energy_storage_cf_ts,H2_storage_charges_ts,H2_injection_to_grid_ts], axis=1)    
-    save_results_dir =  f'timeseries_results_S1_{simulation_years}Y_{H2_sale_price_per_kg}'
+    save_results_dir =  f'timeseries_results_S1_{simulation_years}Y_{sensitivity_analysis_scenario}_p{H2_sale_price_per_kg}'
     horizontal_concat.to_csv(save_results_dir)
 
 
