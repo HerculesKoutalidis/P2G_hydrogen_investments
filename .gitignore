@@ -1,0 +1,22 @@
+# Ignore virtual environments
+.venv/
+.conda/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Unit test / coverage reports
+.coverage
+*.cover
+*.log
+*.out
