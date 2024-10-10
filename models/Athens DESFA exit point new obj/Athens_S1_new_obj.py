@@ -78,6 +78,14 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     electrolysis_var_opex = input_parameters_data['electrolysis_variable_opex'][0]
     charge_efficiency, discharge_efficiency, H2_transport_efficiency = 0.99, 0.99, 0.99
     lifetime_electrolysis = 9 # electrolyzer stack lifetime
+    
+    #Balance of Plant (BoP) parameters
+    BoP_sp_capex_pc = 0.02  #Percentage of electrolysis specific capex
+    BoP_fix_opex_pc = 0.1  #Percentage of BoP fix opex per year, as a fraction of electrolysis specific fix opex
+    BoP_electricity_consumption_pc = 0.01 #percentage of electrolysis electricity consumption
+    electrolysis_capex *= (1+BoP_sp_capex_pc) #include BoP sp.capex to electrolysis capex
+    electrolysis_fixed_opex *= (1+BoP_fix_opex_pc)  #include BoP sp.fix opex to electrolysis fix.opex 
+    electrolysis_efficiency /= (1+BoP_electricity_consumption_pc) #effective electrolysis efficiency.
 
 
     #Max H2 admixture
@@ -276,7 +284,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     
     #Compute Variable Opexes
     Cvaropex_electrolysis_year = (model.variables['Link-p'].loc[InvPeriodFrames_list[0],'P_to_H2'].sum()*network.links.T.P_to_H2['marginal_cost'] + #electrolyzer variable opex other than electricity and taxes on it        
-                                  model.variables['Link-p'].loc[InvPeriodFrames_list[0],'P_to_H2'].sum() * energy_basic_price* tax_on_energy)     #tax on electricity consumption - to the state                     
+                                  model.variables['Link-p'].loc[InvPeriodFrames_list[0],'P_to_H2'].sum()*(1+BoP_electricity_consumption_pc) * energy_basic_price* tax_on_energy)     #tax on electricity consumption - to the state                     
     Cvaropex_storage_year  = 0 
     Cvar_opex_year = Cvaropex_electrolysis_year + Cvaropex_storage_year
 
@@ -288,7 +296,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
         #Compute the Var.opexes for this year
         Cvaropex_electrolysis_year = (model.variables['Link-p'].loc[InvPeriodFrames_list[year-1],'P_to_H2'].sum()*network.links.T.P_to_H2['marginal_cost'] + #electrolyzer variable opex other than electricity and taxes on it        
-                                      model.variables['Link-p'].loc[InvPeriodFrames_list[year-1],'P_to_H2'].sum() * energy_basic_price* tax_on_energy)     #tax on electricity consumption - to the state                     
+                                      model.variables['Link-p'].loc[InvPeriodFrames_list[year-1],'P_to_H2'].sum() *(1+BoP_electricity_consumption_pc) * energy_basic_price* tax_on_energy)     #tax on electricity consumption - to the state                     
         Cvaropex_storage_year  = 0 
         Cvar_opex_year = Cvaropex_electrolysis_year + Cvaropex_storage_year
 
@@ -298,7 +306,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
         cash_flow_of_year = Inc_from_H2_year + Inc_salv_ann -( Cinv_ann + Cfix_opex_ann + Crep_ann) - Cvar_opex_year   #Cash flow of that year                    
         objective_function_model+= cash_flow_of_year  
 
-    #Solve model with minus NPV as obj function.
+    #Obj.function definition (minus ann. cash flow)
     model.objective =   -objective_function_model
 
     #SOLVE
@@ -349,7 +357,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     
     #Theoretical Var.opexes calculations
     Cvaropex_electrolysis_year_th = (network.links_t.p0['P_to_H2'][:365*24].sum()*network.links.T.P_to_H2['marginal_cost'] + #electrolyzer variable opex other than electricity and taxes on it
-                                     network.links_t.p0['P_to_H2'][:365*24].sum() *energy_basic_price* tax_on_energy)     #tax on electricity consumption - to the state 
+                                     network.links_t.p0['P_to_H2'][:365*24].sum() *(1+BoP_electricity_consumption_pc) *energy_basic_price* tax_on_energy)     #tax on electricity consumption - to the state 
     Cvaropex_storage_year_th  = 0 
     Cvar_opex_year_th = Cvaropex_electrolysis_year_th + Cvaropex_storage_year_th
     
@@ -364,7 +372,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
         #Theor var.opexes this year
         Cvaropex_electrolysis_year_th = (network.links_t.p0['P_to_H2'][ss_range].sum()*network.links.T.P_to_H2['marginal_cost'] + #electrolyzer variable opex other than electricity and taxes on it
-                                     network.links_t.p0['P_to_H2'][ss_range].sum() *energy_basic_price* tax_on_energy)     #tax on electricity consumption - to the state 
+                                     network.links_t.p0['P_to_H2'][ss_range].sum() *(1+BoP_electricity_consumption_pc) *energy_basic_price* tax_on_energy)     #tax on electricity consumption - to the state 
         Cvaropex_storage_year_th  = 0 
         Cvar_opex_year_th = Cvaropex_electrolysis_year_th + Cvaropex_storage_year_th
         
@@ -416,7 +424,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     
     #Total opex calcs.
     opex_costs_ann = fixed_opex_ann + var_opex_ann
-    opex_costs_total = opex_costs_ann * simulation_years #(?)
+    opex_costs_nom_total = opex_costs_ann * project_lifetime #(?)
     opex_costs_project = opex_costs_ann *PLMF
     
     #Replacement costs calculations
@@ -447,12 +455,13 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     #Total income calcs.
     income_ann =  h2_income_ann + salv_inc_ann
+    income_nom_total = income_ann * project_lifetime
     income_project = income_ann *PLMF
 
     #Net profit calcs.
     cash_flow_ann = income_ann - costs_ann
     NPV = cash_flow_ann * PLMF  #(?)
-    Net_nom_profit_project =  income_ann*project_lifetime - capex_costs_project - opex_costs_total
+    Net_nom_profit_project =  income_nom_total - capex_costs_project - opex_costs_nom_total
 
 
     #Other calculations--------------------------------------------------------------------------------------------
@@ -547,7 +556,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
 
     print('Theoretical objval  : ', round(theoretical_objval,2),' €')
-    print('Model objval (-NPV) : ', round(model_objval,2), ' €')
+    print('Model objval : ', round(model_objval,2), ' €')
     print('Difference (%): ', round((model_objval - theoretical_objval)/model_objval*100,4),'%')
 
 
