@@ -4,7 +4,7 @@ Repository for Power to Gas experiments with end product hydrogen.
 Install the packages needed to run the experiments, found inside the ```requirements.txt``` file, to your python environment. Connected to your environment, execute:  ```pip install -r /path/to/requirements.txt``` to do so.
 
 ## How to run the experiments
-Execute: ```python filename.py -v1 value1 -v2 value2 -v3 value3 -v4 value4 -v5 value5 -y number_of_sim_years``` ,  where ```value1``` , ```value2``` etc. are the input H2 sale per kg values (e.g 3.1 and 3.2), and ```number_of_sim_years``` the number of simulation years of the investment (e.g. 1,2,..,5) . Five experiments are initiated, one for every H2 price, and run in parallel this way.
+Execute: ```python filename.py -hp1 value1 -hp2 value2 -hp3 value3 -hp4 value4 -hp5 value5 -y number_of_sim_years``` ,  where ```value1``` , ```value2``` etc. are the input H2 sale per kg prices (e.g 3.1 and 3.2), and ```number_of_sim_years``` the number of simulation years of the investment (e.g. 1,2,..,5) . Five experiments are initiated, one for every H2 price, and run in parallel this way.
 Advice: run your first set of experiments with number_of_sim_years = 1 , which takes ~20 min, to get acquainted with running the experiments.
 
 ## How to change model parameters
