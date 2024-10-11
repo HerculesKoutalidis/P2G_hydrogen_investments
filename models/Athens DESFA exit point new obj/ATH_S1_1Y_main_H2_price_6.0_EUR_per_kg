@@ -1,0 +1,54 @@
+,0
+description,wind_capex_1104000wind f.opex_27400_wind marginal_0_solar_capex_680000solar f.opex_15250_solar marginal_0_H2_storage_capex_14500_H2_storage_marginal_0_H2 storage f.opex_290_electr.eff_0.7485148514851485_electr.capex_942480.0_electr.f.opex_20328.0_electr. v.opex_1.33_MHA_0.1
+Sensitivity analysis scenario,main
+CAPEX(EUR@PV),36742222.07
+Wind capex (%),43.15
+Solar capex (%),22.53
+Electrolysis capex (%),30.98
+H2 storage capex (%),3.34
+OPEX(EUR@PV),16404962.58
+Wind Fix.Opex(%),27.95
+Wind Var.Opex(%),0.0
+Solar Fix.Opex(%),13.19
+Solar Var.Opex(%),0.0
+Electrolysis Fix.Opex(%),51.51
+Electrolysis Var.Opex(%),5.61
+H2 storage Fix.Opex(%),1.74
+H2 storage Var.Opex(%),0.0
+"Replacement costs (EUR, PV)",3105101.99
+Electrolysis repl. (%),92.34
+H2 storage repl. (%),7.66
+Obj.val (-ann.cash flow EUR),-2101625.69
+Theoretical obj.val (_NPV EUR),-2101621.85
+Difference (%) ,0.0002
+Company horizon costs(EUR@PV),56252286.65
+Capex(%),65.32
+Opex(%),29.16
+Replacement(%),5.52
+Company horizon income(EUR@PV),94248018.69
+P2G(H2) income(%),81.7
+Salvage income(%),18.3
+Company horizon net nom.profit(EUR),130251600.6
+ROI(%),354.5
+Wind generation(%),62.08
+Solar generation(%),37.92
+Average electricity prod.cost(EUR/kWh),0.0
+Investment NPV (should be zero),38002626.51
+H2 sale price(EUR/kg),6.0
+LCOH(EUR/kg),4.38316
+Wind nom.installation(MW),14.3598
+Wind av.capacity factor(% of p_nom),29.29
+Solar nom.installation(MW),12.1757
+Solar av.capacity factor(% of p_nom),21.11
+Electrolysis nominal installation(MW),12.0766
+Electrolysis av.capacity factor(% of p_nom),56.11
+H2 storage size (kg),2540.06
+H2 storage av.storage level (%),29.61
+H2 av.injection per volume (%),6.7406
+"H2 total project production (tons, PV):",12833.736
+H2 ann. yearly production (tons):,1101.27
+NG energy demand covered by synthetic H2 (%),1.38
+GHG emissions of baseline yearly(tons CO2 eq.),650070.595
+GHG emissions of scenario (% of baseline),98.62
+GHG emissions savings (tons CO2 eq.),8971.68
+Duration of experiment (h),0.29

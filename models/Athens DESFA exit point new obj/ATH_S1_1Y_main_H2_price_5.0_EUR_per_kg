@@ -1,0 +1,54 @@
+,0
+description,wind_capex_1104000wind f.opex_27400_wind marginal_0_solar_capex_680000solar f.opex_15250_solar marginal_0_H2_storage_capex_14500_H2_storage_marginal_0_H2 storage f.opex_290_electr.eff_0.7485148514851485_electr.capex_942480.0_electr.f.opex_20328.0_electr. v.opex_1.33_MHA_0.1
+Sensitivity analysis scenario,main
+CAPEX(EUR@PV),29121832.7
+Wind capex (%),41.3
+Solar capex (%),25.5
+Electrolysis capex (%),30.78
+H2 storage capex (%),2.41
+OPEX(EUR@PV),13015471.1
+Wind Fix.Opex(%),26.73
+Wind Var.Opex(%),0.0
+Solar Fix.Opex(%),14.91
+Solar Var.Opex(%),0.0
+Electrolysis Fix.Opex(%),51.13
+Electrolysis Var.Opex(%),5.97
+H2 storage Fix.Opex(%),1.26
+H2 storage Var.Opex(%),0.0
+"Replacement costs (EUR, PV)",2394386.28
+Electrolysis repl. (%),94.31
+H2 storage repl. (%),5.69
+Obj.val (-ann.cash flow EUR),-1077725.01
+Theoretical obj.val (_NPV EUR),-1077728.79
+Difference (%) ,-0.0004
+Company horizon costs(EUR@PV),44531690.08
+Capex(%),65.4
+Opex(%),29.23
+Replacement(%),5.38
+Company horizon income(EUR@PV),66075879.66
+P2G(H2) income(%),82.03
+Salvage income(%),17.97
+Company horizon net nom.profit(EUR),84706694.87
+ROI(%),290.87
+Wind generation(%),59.37
+Solar generation(%),40.63
+Average electricity prod.cost(EUR/kWh),0.0
+Investment NPV (should be zero),21549647.53
+H2 sale price(EUR/kg),5.0
+LCOH(EUR/kg),4.10779
+Wind nom.installation(MW),10.8949
+Wind av.capacity factor(% of p_nom),31.19
+Solar nom.installation(MW),10.9216
+Solar av.capacity factor(% of p_nom),21.29
+Electrolysis nominal installation(MW),9.5113
+Electrolysis av.capacity factor(% of p_nom),60.17
+H2 storage size (kg),1454.61
+H2 storage av.storage level (%),26.81
+H2 av.injection per volume (%),6.0087
+"H2 total project production (tons, PV):",10840.794
+H2 ann. yearly production (tons):,930.254
+NG energy demand covered by synthetic H2 (%),1.17
+GHG emissions of baseline yearly(tons CO2 eq.),650070.595
+GHG emissions of scenario (% of baseline),98.83
+GHG emissions savings (tons CO2 eq.),7578.51
+Duration of experiment (h),0.33
