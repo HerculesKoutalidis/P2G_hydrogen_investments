@@ -1,0 +1,54 @@
+,0
+description,wind_capex_1104000wind f.opex_27400_wind marginal_0_solar_capex_680000solar f.opex_15250_solar marginal_0_H2_storage_capex_14500_H2_storage_marginal_0_H2 storage f.opex_290_electr.eff_0.7485148514851485_electr.capex_942480.0_electr.f.opex_20328.0_electr. v.opex_1.33_MHA_0.1
+Sensitivity analysis scenario,main
+CAPEX(EUR@PV),19667929.67
+Wind capex (%),43.18
+Solar capex (%),24.23
+Electrolysis capex (%),32.07
+H2 storage capex (%),0.51
+OPEX(EUR@PV),8973218.63
+Wind Fix.Opex(%),27.38
+Wind Var.Opex(%),0.0
+Solar Fix.Opex(%),13.88
+Solar Var.Opex(%),0.0
+Electrolysis Fix.Opex(%),52.19
+Electrolysis Var.Opex(%),6.29
+H2 storage Fix.Opex(%),0.26
+H2 storage Var.Opex(%),0.0
+"Replacement costs (EUR, PV)",1608640.34
+Electrolysis repl. (%),98.78
+H2 storage repl. (%),1.22
+Obj.val (-ann.cash flow EUR),-273670.09
+Theoretical obj.val (_NPV EUR),-273670.32
+Difference (%) ,-0.0001
+Company horizon costs(EUR@PV),30249788.64
+Capex(%),65.02
+Opex(%),29.66
+Replacement(%),5.32
+Company horizon income(EUR@PV),37297324.81
+P2G(H2) income(%),84.55
+Salvage income(%),15.45
+Company horizon net nom.profit(EUR),41094725.36
+ROI(%),208.94
+Wind generation(%),61.64
+Solar generation(%),38.36
+Average electricity prod.cost(EUR/kWh),0.0
+Investment NPV (should be zero),7051243.69
+H2 sale price(EUR/kg),4.0
+LCOH(EUR/kg),3.83684
+Wind nom.installation(MW),7.69335
+Wind av.capacity factor(% of p_nom),33.32
+Solar nom.installation(MW),7.00792
+Solar av.capacity factor(% of p_nom),22.76
+Electrolysis nominal installation(MW),6.6932
+Electrolysis av.capacity factor(% of p_nom),62.13
+H2 storage size (kg),208.72
+H2 storage av.storage level (%),20.97
+H2 av.injection per volume (%),4.6474
+"H2 total project production (tons, PV):",7884.042
+H2 ann. yearly production (tons):,676.534
+NG energy demand covered by synthetic H2 (%),0.85
+GHG emissions of baseline yearly(tons CO2 eq.),650070.595
+GHG emissions of scenario (% of baseline),99.15
+GHG emissions savings (tons CO2 eq.),5511.51
+Duration of experiment (h),0.34
