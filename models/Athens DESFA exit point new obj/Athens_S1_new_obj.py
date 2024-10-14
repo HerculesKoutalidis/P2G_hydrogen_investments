@@ -39,22 +39,22 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #%%######################### NETWORK PARAMETERS #######################
     ####### INPUT EXPERIMENT PARAMETERS SECTION HERE ###########################
     #Fill the values of the parameters below, according to the "parameters guide xlsx" file
-    wind_spec_capex = 1104000  
-    wind_fixed_opex = 27400
+    wind_spec_capex = 993600  
+    wind_fixed_opex = 24660
     wind_marginal = 0
-    solar_spec_capex =  680000
-    solar_fixed_opex = 15250
+    solar_spec_capex =  612000
+    solar_fixed_opex = 13725
     solar_marginal =  0
-    H2_storage_spec_capex = 14500
+    H2_storage_spec_capex = 13050
     H2_storage_marginal = 0
-    H2_storage_fixed_opex = 290
+    H2_storage_fixed_opex = 261
     NG_marginal_cost = 0
-    electrolysis_efficiency =  0.756
-    electrolysis_spec_capex = 924000    
-    electrolysis_fixed_opex = 18480
+    electrolysis_efficiency =  0.82
+    electrolysis_spec_capex = 831600    
+    electrolysis_fixed_opex = 16632
     electrolysis_var_opex =   1.33 
-    MHA =  0.1  #Max H2 admixture per volume ( 0 to 1) 
-    sensitivity_analysis_scenario = 'main' 
+    MHA =  0.3  #Max H2 admixture per volume ( 0 to 1) 
+    sensitivity_analysis_scenario = 'LE2' 
 
     #############################################################################
     ########OTHER PARAMETERS (same for all experiments -DO NOT CHANGE)##########################
