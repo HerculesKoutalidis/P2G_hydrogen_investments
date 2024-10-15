@@ -39,7 +39,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #%%######################### NETWORK PARAMETERS #######################
     ####### INPUT EXPERIMENT PARAMETERS SECTION HERE ###########################
     #Fill the values of the parameters below, according to the "parameters guide xlsx" file
-    wind_spec_capex = 993600  
+    wind_spec_capex = 999999  
     wind_fixed_opex = 24660
     wind_marginal = 0
     solar_spec_capex =  612000
