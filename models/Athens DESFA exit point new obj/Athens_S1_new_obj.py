@@ -643,8 +643,13 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     df = pd.DataFrame(data)
     df = df.T
     #H2_sale_price_per_kg,H2_selling_price_per_kg =3.15, 3.15
-    save_results_dir =  f'ATH_S1_{simulation_years}Y_{sensitivity_analysis_scenario}_H2_price_{H2_sale_price_per_kg}_EUR_per_kg'
-    df.to_csv(save_results_dir)
+    save_results_dir =  f'./ATH_S1_{simulation_years}Y_{sensitivity_analysis_scenario}_H2_price_{H2_sale_price_per_kg}_EUR_per_kg'
+    save_results_path = f'./Results/{sensitivity_analysis_scenario}' 
+    if not os.path.exists(save_results_path):
+         os.makedirs(save_results_path)
+    df.to_csv(save_results_path + save_results_dir)
+
+
     print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_sale_price_per_kg}. ===================')
     
     #%%################### WRITE USEFUL TIMESERIES RESULTS TO CSV ####################
@@ -662,8 +667,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     H2_injection_to_grid_ts = -network.links_t.p1['H2_to_NG'] #in MWh thermal. Divide with HHV_H2 to obtain kg of H2
 
     horizontal_concat = pd.concat([actual_wind_cf_ts, actual_solar_cf_ts,ng_supply_ts, electrolysis_cf_ts,H2_energy_storage_cf_ts,H2_storage_charges_ts,H2_injection_to_grid_ts], axis=1)    
-    save_results_dir =  f'timeseries_results_S1_{simulation_years}Y_{sensitivity_analysis_scenario}_p{H2_sale_price_per_kg}'
-    horizontal_concat.to_csv(save_results_dir)
+    save_results_dir =  f'./timeseries_results_S1_{simulation_years}Y_{sensitivity_analysis_scenario}_p{H2_sale_price_per_kg}'
+    horizontal_concat.to_csv(save_results_path + save_results_dir)
 
 
 #%%Main function of the model. Uses argparse to put the "experiment function" into multiprocessing
@@ -699,4 +704,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-# %%
