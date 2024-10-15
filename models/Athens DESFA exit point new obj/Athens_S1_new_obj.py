@@ -39,22 +39,22 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #%%######################### NETWORK PARAMETERS #######################
     ####### INPUT EXPERIMENT PARAMETERS SECTION HERE ###########################
     #Fill the values of the parameters below, according to the "parameters guide xlsx" file
-    wind_spec_capex = 1104000  
-    wind_fixed_opex = 27400
+    wind_spec_capex = 993600  
+    wind_fixed_opex = 24660
     wind_marginal = 0
-    solar_spec_capex =  680000
-    solar_fixed_opex = 15250
+    solar_spec_capex =  612000
+    solar_fixed_opex = 13725
     solar_marginal =  0
-    H2_storage_spec_capex = 14500
+    H2_storage_spec_capex = 13050
     H2_storage_marginal = 0
-    H2_storage_fixed_opex = 290
+    H2_storage_fixed_opex = 261
     NG_marginal_cost = 0
-    electrolysis_efficiency =  0.756
-    electrolysis_spec_capex = 924000    
-    electrolysis_fixed_opex = 18480
+    electrolysis_efficiency =  0.82
+    electrolysis_spec_capex = 831600    
+    electrolysis_fixed_opex = 16632
     electrolysis_var_opex =   1.33 
-    MHA =  0.1  #Max H2 admixture per volume ( 0 to 1) 
-    sensitivity_analysis_scenario = 'main' 
+    MHA =  0.3  #Max H2 admixture per volume ( 0 to 1) 
+    sensitivity_analysis_scenario = 'LE2' 
 
     #############################################################################
     ########OTHER PARAMETERS (same for all experiments -DO NOT CHANGE)##########################
@@ -643,8 +643,13 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     df = pd.DataFrame(data)
     df = df.T
     #H2_sale_price_per_kg,H2_selling_price_per_kg =3.15, 3.15
-    save_results_dir =  f'ATH_S1_{simulation_years}Y_{sensitivity_analysis_scenario}_H2_price_{H2_sale_price_per_kg}_EUR_per_kg'
-    df.to_csv(save_results_dir)
+    save_results_dir =  f'./ATH_S1_{simulation_years}Y_{sensitivity_analysis_scenario}_H2_price_{H2_sale_price_per_kg}_EUR_per_kg'
+    save_results_path = f'./Results/{sensitivity_analysis_scenario}' 
+    if not os.path.exists(save_results_path):
+         os.makedirs(save_results_path)
+    df.to_csv(save_results_path + save_results_dir)
+
+
     print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_sale_price_per_kg}. ===================')
     
     #%%################### WRITE USEFUL TIMESERIES RESULTS TO CSV ####################
@@ -662,8 +667,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     H2_injection_to_grid_ts = -network.links_t.p1['H2_to_NG'] #in MWh thermal. Divide with HHV_H2 to obtain kg of H2
 
     horizontal_concat = pd.concat([actual_wind_cf_ts, actual_solar_cf_ts,ng_supply_ts, electrolysis_cf_ts,H2_energy_storage_cf_ts,H2_storage_charges_ts,H2_injection_to_grid_ts], axis=1)    
-    save_results_dir =  f'timeseries_results_S1_{simulation_years}Y_{sensitivity_analysis_scenario}_p{H2_sale_price_per_kg}'
-    horizontal_concat.to_csv(save_results_dir)
+    save_results_dir =  f'./timeseries_results_S1_{simulation_years}Y_{sensitivity_analysis_scenario}_p{H2_sale_price_per_kg}'
+    horizontal_concat.to_csv(save_results_path + save_results_dir)
 
 
 #%%Main function of the model. Uses argparse to put the "experiment function" into multiprocessing
@@ -699,4 +704,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-# %%
