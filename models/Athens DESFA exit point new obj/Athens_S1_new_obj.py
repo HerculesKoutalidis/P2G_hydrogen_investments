@@ -42,7 +42,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     wind_spec_capex = 999999  
     wind_fixed_opex = 24660
     wind_marginal = 0
-    solar_spec_capex =  612000
+    solar_spec_capex =  612001
     solar_fixed_opex = 13725
     solar_marginal =  0
     H2_storage_spec_capex = 13050
