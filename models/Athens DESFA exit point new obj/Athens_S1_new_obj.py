@@ -13,7 +13,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 #a_file = pd.read_csv('../../models_inputs/RES generation data/PV generation data/pv_capacity_factor_hourly.csv')
 #%%
-def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_years):
+def experiment_function(H2_selling_price_per_kg, sensitivity_scenario,simulation_horizon_number_of_years):
     #%%RES input data
     solar_load_factor_data = pd.read_csv('./Data/pv_cf.csv')
     wind_load_factor_data = pd.read_csv('./Data/wind_cf.csv')
@@ -23,6 +23,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     n_years = 10         #n_years is the number of years to which the csv parameters such as capex refer to
     simulation_years = simulation_horizon_number_of_years # number of simulation years. This parameter is inputed here
     project_lifetime = 25 #duration of the project horizon
+    sensitivity_scenario = sensitivity_scenario.strip()
     
     solar_load_factor_timeseries_series, wind_load_factor_timeseries_series = solar_load_factor_timeseries, wind_load_factor_timeseries
     solar_load_factor_timeseries, wind_load_factor_timeseries = list(solar_load_factor_timeseries), list(wind_load_factor_timeseries)
@@ -37,24 +38,41 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #input_parameters_data = pd.read_csv('./Data/input_parameters_S2.1.csv')
 
     #%%######################### NETWORK PARAMETERS #######################
-    ####### INPUT EXPERIMENT PARAMETERS SECTION HERE ###########################
+    ####### EXPERIMENT PARAMETERS SECTION HERE ###########################
     #Fill the values of the parameters below, according to the "parameters guide xlsx" file
-    wind_spec_capex = 1048800  
-    wind_fixed_opex = 26030
-    wind_marginal = 0
-    solar_spec_capex =  646000
-    solar_fixed_opex = 14487.5
-    solar_marginal =  0
-    H2_storage_spec_capex = 13775
-    H2_storage_marginal = 0
-    H2_storage_fixed_opex = 275.5
-    NG_marginal_cost = 0
-    electrolysis_efficiency =  0.79
-    electrolysis_spec_capex = 877800  
-    electrolysis_fixed_opex = 17556
-    electrolysis_var_opex =   1.33 
-    MHA =  0.2  #Max H2 admixture per volume ( 0 to 1) 
-    sensitivity_analysis_scenario = 'LE1' 
+    wind_spec_capex_dict = {'main':1104000, 'LE1':10488000, 'LE2':993600, 'LE3':883200} 
+    wind_fixed_opex_dict = {'main':27400, 'LE1':26030, 'LE2':24660, 'LE3':20550} 
+    wind_marginal_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
+    solar_spec_capex_dict =  {'main':680000, 'LE1':646000, 'LE2':612000, 'LE3':544000} 
+    solar_fixed_opex_dict = {'main':15250, 'LE1':14487.5, 'LE2':13725, 'LE3':11437.5} 
+    solar_marginal_dict =  {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
+    H2_storage_spec_capex_dict = {'main':14500, 'LE1':13775, 'LE2':13050, 'LE3':11600} 
+    H2_storage_marginal_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
+    H2_storage_fixed_opex_dict = {'main':290, 'LE1':275.5, 'LE2':261, 'LE3':232} 
+    NG_marginal_cost_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
+    electrolysis_efficiency_dict =  {'main':0.756, 'LE1':0.79, 'LE2':0.82, 'LE3':0.85} 
+    electrolysis_spec_capex_dict = {'main':924000, 'LE1':877800, 'LE2':831600, 'LE3':600600}   
+    electrolysis_fixed_opex_dict = {'main':18480, 'LE1':17556, 'LE2':16632, 'LE3':12012} 
+    electrolysis_var_opex_dict =   {'main':1.33, 'LE1':1.33, 'LE2':1.33, 'LE3':1.33} 
+    MHA_dict =  {'main':0.1, 'LE1':0.2, 'LE2':0.3, 'LE3':0.5}   #Max H2 admixture per volume ( 0 to 1) 
+
+
+    wind_spec_capex = wind_spec_capex_dict[sensitivity_scenario]  
+    wind_fixed_opex = wind_fixed_opex_dict[sensitivity_scenario]  
+    wind_marginal = wind_marginal_dict[sensitivity_scenario]  
+    solar_spec_capex =  solar_spec_capex_dict[sensitivity_scenario]  
+    solar_fixed_opex = solar_fixed_opex_dict[sensitivity_scenario]  
+    solar_marginal =  solar_marginal_dict[sensitivity_scenario]  
+    H2_storage_spec_capex = H2_storage_spec_capex_dict[sensitivity_scenario]  
+    H2_storage_marginal = H2_storage_marginal_dict[sensitivity_scenario]  
+    H2_storage_fixed_opex = H2_storage_fixed_opex_dict[sensitivity_scenario]  
+    NG_marginal_cost = NG_marginal_cost_dict[sensitivity_scenario]  
+    electrolysis_efficiency =  electrolysis_efficiency_dict[sensitivity_scenario]  
+    electrolysis_spec_capex = electrolysis_spec_capex_dict[sensitivity_scenario]  
+    electrolysis_fixed_opex = electrolysis_fixed_opex_dict[sensitivity_scenario]  
+    electrolysis_var_opex =   electrolysis_var_opex_dict[sensitivity_scenario] 
+    MHA =  MHA_dict[sensitivity_scenario]  
+    sensitivity_analysis_scenario = sensitivity_scenario
 
     #############################################################################
     ########OTHER PARAMETERS (same for all experiments -DO NOT CHANGE)##########################
@@ -675,21 +693,20 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Multiprocessing with argparse, with multiple H2 sale prices as parameters.")
-    parser.add_argument('-hp1',"--hydrogen_price1", type=float, default= 3.5, help="H2 price value ")
-    parser.add_argument('-hp2',"--hydrogen_price2", type=float, default= 4, help="H2 price value ")
-    parser.add_argument('-hp3',"--hydrogen_price3", type=float, default= 5, help="H2 price value ")
-    parser.add_argument('-hp4',"--hydrogen_price4", type=float, default= 6, help="H2 price value ")
-    parser.add_argument('-hp5',"--hydrogen_price5", type=float, default= 8, help="H2 price value ")
+    parser.add_argument('-hpl','--hydrogen_prices_list', type=float, nargs='+', default= 4.5, help= 'list of H2 prices values')
+    parser.add_argument('-ss',"--sensitivity_scenario", type=str, default= 'main', help="Sensitivity scenario (main, LE1, LE2 or LE3) ")
     parser.add_argument('-y',"--simulation_years", type=int, default= 1, help="Number of simulation horizon years (integer). From 1 to 5 ")
     args = parser.parse_args()
-    H2_sales_prices_list = [args.hydrogen_price1, args.hydrogen_price2, args.hydrogen_price3,args.hydrogen_price4, args.hydrogen_price5]
+    H2_sales_prices_list = args.hydrogen_prices_list
+    sensitivity_scenario_input = args.sensitivity_scenario
     simulation_horizon_number_of_years = args.simulation_years
 
     # Create and start worker processes
     start_time = time.perf_counter()
     processes = []
     for H2_price in H2_sales_prices_list:
-        p = multiprocessing.Process(target=experiment_function, args=(H2_price,simulation_horizon_number_of_years))
+        H2_price = float(H2_price)
+        p = multiprocessing.Process(target=experiment_function, args=(H2_price,sensitivity_scenario_input,simulation_horizon_number_of_years))
         processes.append(p)
         p.start()
 

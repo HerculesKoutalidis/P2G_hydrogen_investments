@@ -13,7 +13,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 
 #%%
-def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_years):
+def experiment_function(H2_selling_price_per_kg, sensitivity_scenario,simulation_horizon_number_of_years):
     #%%RES input data
     solar_load_factor_data = pd.read_csv('./Data/pv_cf.csv')
     wind_load_factor_data = pd.read_csv('./Data/wind_cf.csv')
@@ -37,25 +37,41 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     #input_parameters_data = pd.read_csv('./Data/input_parameters_S2.2.csv')
 
     #%%######################### NETWORK PARAMETERS #######################
-    ####### INPUT EXPERIMENT PARAMETERS SECTION HERE ###########################
+    ####### EXPERIMENT PARAMETERS SECTION HERE ###########################
     #Fill the values of the parameters below, according to the "parameters guide xlsx" file
-    wind_spec_capex = 0
-    wind_fixed_opex = 0
-    wind_PPA_provider_marginal = 53
-    solar_spec_capex =  0
-    solar_fixed_opex = 0
-    solar_PPA_provider_marginal =31.8
-    H2_storage_spec_capex = 14500
-    H2_storage_marginal = 0
-    H2_storage_fixed_opex = 290
-    NG_marginal_cost = 0
-    electrolysis_efficiency =  0.756
-    electrolysis_spec_capex = 924000    
-    electrolysis_fixed_opex = 18400
-    electrolysis_var_opex =   1.33 
-    MHA =  0.1    #Max H2 admixture per volume( 0 to 1)   
-    sensitivity_analysis_scenario = 'main' 
+    wind_spec_capex_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
+    wind_fixed_opex_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
+    wind_marginal_dict = {'main':53, 'LE1':50.35, 'LE2':47.7, 'LE3':39.75} 
+    solar_spec_capex_dict =  {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
+    solar_fixed_opex_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
+    solar_marginal_dict =  {'main':31.8, 'LE1':30.21, 'LE2':28.62, 'LE3':23.85} 
+    H2_storage_spec_capex_dict = {'main':14500, 'LE1':13775, 'LE2':13050, 'LE3':11600} 
+    H2_storage_marginal_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
+    H2_storage_fixed_opex_dict = {'main':290, 'LE1':275.5, 'LE2':261, 'LE3':232} 
+    NG_marginal_cost_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
+    electrolysis_efficiency_dict =  {'main':0.756, 'LE1':0.79, 'LE2':0.82, 'LE3':0.85} 
+    electrolysis_spec_capex_dict = {'main':924000, 'LE1':877800, 'LE2':831600, 'LE3':600600}   
+    electrolysis_fixed_opex_dict = {'main':18480, 'LE1':17556, 'LE2':16632, 'LE3':12012} 
+    electrolysis_var_opex_dict =   {'main':1.33, 'LE1':1.33, 'LE2':1.33, 'LE3':1.33} 
+    MHA_dict =  {'main':0.1, 'LE1':0.2, 'LE2':0.3, 'LE3':0.5}   #Max H2 admixture per volume ( 0 to 1) 
 
+
+    wind_spec_capex = wind_spec_capex_dict[sensitivity_scenario]  
+    wind_fixed_opex = wind_fixed_opex_dict[sensitivity_scenario]  
+    wind_marginal = wind_marginal_dict[sensitivity_scenario]  
+    solar_spec_capex =  solar_spec_capex_dict[sensitivity_scenario]  
+    solar_fixed_opex = solar_fixed_opex_dict[sensitivity_scenario]  
+    solar_marginal =  solar_marginal_dict[sensitivity_scenario]  
+    H2_storage_spec_capex = H2_storage_spec_capex_dict[sensitivity_scenario]  
+    H2_storage_marginal = H2_storage_marginal_dict[sensitivity_scenario]  
+    H2_storage_fixed_opex = H2_storage_fixed_opex_dict[sensitivity_scenario]  
+    NG_marginal_cost = NG_marginal_cost_dict[sensitivity_scenario]  
+    electrolysis_efficiency =  electrolysis_efficiency_dict[sensitivity_scenario]  
+    electrolysis_spec_capex = electrolysis_spec_capex_dict[sensitivity_scenario]  
+    electrolysis_fixed_opex = electrolysis_fixed_opex_dict[sensitivity_scenario]  
+    electrolysis_var_opex =   electrolysis_var_opex_dict[sensitivity_scenario] 
+    MHA =  MHA_dict[sensitivity_scenario]  
+    sensitivity_analysis_scenario = sensitivity_scenario
 
     #############################################################################
     ########OTHER PARAMETERS (same for all experiments -DO NOT CHANGE)##########################
@@ -84,14 +100,11 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     electrolysis_fixed_opex *= (1+BoP_fix_opex_pc)  #include BoP sp.fix opex to electrolysis fix.opex 
     electrolysis_efficiency /= (1+BoP_electricity_consumption_pc) #effective electrolysis efficiency.
 
-
-
     #Selling prices data
     LHV_H2,HHV_H2 = 0.03333, 0.03989  #LHV,HHV of H2 in MWh/kg H2
     LHV_NG, HHV_NG = 0.0131, 0.01485  #LHV,HHV of NG in MWh/kg NG (a typical HHV ng is 14.49 kWh/kg)
     en_density_H2, en_density_ng = 3 , 10.167
     Mr_H2, Mr_ng = 2.01568 *1e-3, 17.47* 1e-3 # molar masses in kg per mol
-
 
     #Max H2 admixture
     #power_ratio =  round(en_density_H2/en_density_ng*MHA/(1-MHA),4)
@@ -101,8 +114,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     H2_sale_price_per_kg = H2_selling_price_per_kg
     H2_sale_price_per_MWh = H2_sale_price_per_kg / HHV_H2
     
-    recognition_string = 'wind_capex_'+str(wind_spec_capex)+'wind f.opex_'+str(wind_fixed_opex)+'_wind marginal_'+str(wind_PPA_provider_marginal)
-    recognition_string+= '_solar_capex_'+str(solar_spec_capex)+'solar f.opex_'+str(solar_fixed_opex)+'_solar marginal_'+str(solar_PPA_provider_marginal)
+    recognition_string = 'wind_capex_'+str(wind_spec_capex)+'wind f.opex_'+str(wind_fixed_opex)+'_wind marginal_'+str(wind_marginal)
+    recognition_string+= '_solar_capex_'+str(solar_spec_capex)+'solar f.opex_'+str(solar_fixed_opex)+'_solar marginal_'+str(solar_marginal)
     recognition_string+= '_H2_storage_capex_'+str(H2_storage_spec_capex)+'_H2_storage_marginal_'+str(H2_storage_marginal)+'_H2 storage f.opex_'+str(H2_storage_fixed_opex)
     recognition_string+= '_electr.eff_'+str(electrolysis_efficiency)+'_electr.capex_'+str(electrolysis_spec_capex)+'_electr.f.opex_'+str(electrolysis_fixed_opex)+'_electr. v.opex_'+str(electrolysis_var_opex)
     recognition_string+= '_MHA_'+str(MHA)
@@ -146,7 +159,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             name = "wind_provider_PPA",
             bus= 'Bus AC',
             carrier= 'AC',
-            marginal_cost = wind_PPA_provider_marginal,
+            marginal_cost = wind_marginal,
             p_nom_extendable= True , 
             p_max_pu= wind_load_factor_timeseries,
             capital_cost= wind_spec_capex,)
@@ -156,7 +169,7 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
             name = "solar_provider_PPA",
             bus= 'Bus AC',
             carrier= 'AC',
-            marginal_cost = solar_PPA_provider_marginal,
+            marginal_cost = solar_marginal,
             p_nom_extendable= True , 
             p_max_pu= solar_load_factor_timeseries,
             capital_cost=solar_spec_capex,)
@@ -291,8 +304,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
 
     wind_electricity_cf_quantity_year = sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]])
     solar_electricity_cf_quantity_year = sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]])
-    Cvaropex_wind_year  = wind_electricity_cf_quantity_year  * model.variables['Generator-p_nom'].loc['wind_provider_PPA']*wind_PPA_provider_marginal*(1+tax_on_energy) #electricity PPA cost and tax on electricity
-    Cvaropex_solar_year = solar_electricity_cf_quantity_year * model.variables['Generator-p_nom'].loc['solar_provider_PPA']*solar_PPA_provider_marginal*(1+tax_on_energy)
+    Cvaropex_wind_year  = wind_electricity_cf_quantity_year  * model.variables['Generator-p_nom'].loc['wind_provider_PPA']*wind_marginal*(1+tax_on_energy) #electricity PPA cost and tax on electricity
+    Cvaropex_solar_year = solar_electricity_cf_quantity_year * model.variables['Generator-p_nom'].loc['solar_provider_PPA']*solar_marginal*(1+tax_on_energy)
     Cvar_opex_year = Cvaropex_electrolysis_year + Cvaropex_storage_year + Cvaropex_wind_year + Cvaropex_solar_year
 
 
@@ -309,8 +322,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
         Cvaropex_storage_year  = 0 
         wind_electricity_cf_quantity_year = sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]])
         solar_electricity_cf_quantity_year = sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]])
-        Cvaropex_wind_year  = wind_electricity_cf_quantity_year  * model.variables['Generator-p_nom'].loc['wind_provider_PPA']*wind_PPA_provider_marginal*(1+tax_on_energy) #electricity PPA cost and tax on electricity
-        Cvaropex_solar_year = solar_electricity_cf_quantity_year * model.variables['Generator-p_nom'].loc['solar_provider_PPA']*solar_PPA_provider_marginal*(1+tax_on_energy)
+        Cvaropex_wind_year  = wind_electricity_cf_quantity_year  * model.variables['Generator-p_nom'].loc['wind_provider_PPA']*wind_marginal*(1+tax_on_energy) #electricity PPA cost and tax on electricity
+        Cvaropex_solar_year = solar_electricity_cf_quantity_year * model.variables['Generator-p_nom'].loc['solar_provider_PPA']*solar_marginal*(1+tax_on_energy)
         Cvar_opex_year = Cvaropex_electrolysis_year + Cvaropex_storage_year + Cvaropex_wind_year + Cvaropex_solar_year
 
         #Compute H2 income for this year
@@ -368,8 +381,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
                                      network.links_t.p0['P_to_H2'][:365*24].sum() *(1+BoP_electricity_consumption_pc)*energy_basic_price* tax_on_energy)     #tax on electricity consumption - to the state 
 
     Cvaropex_storage_year_th  = 0 
-    Cvaropex_wind_year_th = sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]])* network.generators.loc['wind_provider_PPA','p_nom_opt']*wind_PPA_provider_marginal*(1+tax_on_energy) #wind var.opex for Y1
-    Cvaropex_solar_year_th = sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]])* network.generators.loc['solar_provider_PPA','p_nom_opt']*solar_PPA_provider_marginal*(1+tax_on_energy) #solar var.opex for Y1
+    Cvaropex_wind_year_th = sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]])* network.generators.loc['wind_provider_PPA','p_nom_opt']*wind_marginal*(1+tax_on_energy) #wind var.opex for Y1
+    Cvaropex_solar_year_th = sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[0]])* network.generators.loc['solar_provider_PPA','p_nom_opt']*solar_marginal*(1+tax_on_energy) #solar var.opex for Y1
     Cvar_opex_year_th = Cvaropex_electrolysis_year_th + Cvaropex_storage_year_th + Cvaropex_wind_year_th + Cvaropex_solar_year_th
     
     objective_function_th = Inc_from_H2_year_th + Inc_salv_ann_th -(Cinv_ann_th + Cfix_opex_ann_th + Crep_ann_th) - Cvar_opex_year_th
@@ -387,8 +400,8 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
                                         network.links_t.p0['P_to_H2'][ss_range].sum() *(1+BoP_electricity_consumption_pc)*energy_basic_price* tax_on_energy)     #tax on electricity consumption - to the state 
 
         Cvaropex_storage_year_th  = 0 
-        Cvaropex_wind_year_th = sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]])* network.generators.loc['wind_provider_PPA','p_nom_opt']*wind_PPA_provider_marginal*(1+tax_on_energy) #wind var.opex for Y1
-        Cvaropex_solar_year_th = sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]])* network.generators.loc['solar_provider_PPA','p_nom_opt']*solar_PPA_provider_marginal*(1+tax_on_energy) #solar var.opex for Y1
+        Cvaropex_wind_year_th = sum([wind_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]])* network.generators.loc['wind_provider_PPA','p_nom_opt']*wind_marginal*(1+tax_on_energy) #wind var.opex for Y1
+        Cvaropex_solar_year_th = sum([solar_load_factor_timeseries[t-1] for t in InvPeriodFrames_list[year-1]])* network.generators.loc['solar_provider_PPA','p_nom_opt']*solar_marginal*(1+tax_on_energy) #solar var.opex for Y1
         Cvar_opex_year_th = Cvaropex_electrolysis_year_th + Cvaropex_storage_year_th + Cvaropex_wind_year_th + Cvaropex_solar_year_th
 
         objective_function_th += Inc_from_H2_year_th + Inc_salv_ann_th -(Cinv_ann_th + Cfix_opex_ann_th + Crep_ann_th) - Cvar_opex_year_th
@@ -652,8 +665,11 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     df = pd.DataFrame(data = data)
     df = df.T
     #H2_sale_price_per_kg,H2_selling_price_per_kg =3.1, 3.1
-    save_results_dir =  f'./{sensitivity_analysis_scenario}_results' + f'ATH_S2_{simulation_years}Y_{sensitivity_analysis_scenario}_H2_price_{H2_sale_price_per_kg}_EUR_per_kg'
-    df.to_csv(save_results_dir)
+    save_results_dir =  f'./ATH_S2_{simulation_years}Y_{sensitivity_analysis_scenario}_H2_price_{H2_sale_price_per_kg}_EUR_per_kg'
+    save_results_path = f'./Results/{sensitivity_analysis_scenario}' 
+    if not os.path.exists(save_results_path):
+         os.makedirs(save_results_path)
+    df.to_csv(save_results_path + save_results_dir)
     print(f'===========END OF EXPERIMENT WITH H2 SALE VALUE {H2_sale_price_per_kg}. ===================')
     
     #%%################### WRITE USEFUL TIMESERIES RESULTS TO CSV ####################
@@ -671,29 +687,28 @@ def experiment_function(H2_selling_price_per_kg, simulation_horizon_number_of_ye
     H2_injection_to_grid_ts = -network.links_t.p1['H2_to_NG'] #in MWh thermal. Divide with HHV_H2 to obtain kg of H2
 
     horizontal_concat = pd.concat([actual_wind_cf_ts, actual_solar_cf_ts,ng_supply_ts, electrolysis_cf_ts,H2_energy_storage_cf_ts,H2_storage_charges_ts,H2_injection_to_grid_ts], axis=1)    
-    save_results_dir =  f'./{sensitivity_analysis_scenario}_results' + f'timeseries_results_S2_{simulation_years}Y_{sensitivity_analysis_scenario}_p{H2_sale_price_per_kg}'
-    horizontal_concat.to_csv(save_results_dir)
+    save_results_dir =  f'./timeseries_results_S2_{simulation_years}Y_{sensitivity_analysis_scenario}_p{H2_sale_price_per_kg}'
+    horizontal_concat.to_csv(save_results_path + save_results_dir)
 
 
 #%%Main function of the model. Uses argparse to put the "experiment function" into multiprocessing   
 def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description="Multiprocessing with argparse, with multiple H2 sale prices as parameters.")
-    parser.add_argument('-hp1',"--hydrogen_price1", type=float, default= 3.5, help="H2 price value ")
-    parser.add_argument('-hp2',"--hydrogen_price2", type=float, default= 4, help="H2 price value ")
-    parser.add_argument('-hp3',"--hydrogen_price3", type=float, default= 5, help="H2 price value ")
-    parser.add_argument('-hp4',"--hydrogen_price4", type=float, default= 6, help="H2 price value ")
-    parser.add_argument('-hp5',"--hydrogen_price5", type=float, default= 8, help="H2 price value ")
+    parser.add_argument('-hpl','--hydrogen_prices_list', type=float, nargs='+', default= 5, help= 'list of H2 prices values')
+    parser.add_argument('-ss',"--sensitivity_scenario", type=str, default= 'main', help="Sensitivity scenario (main, LE1, LE2 or LE3) ")
     parser.add_argument('-y',"--simulation_years", type=int, default= 1, help="Number of simulation horizon years (integer). From 1 to 5 ")
     args = parser.parse_args()
-    H2_sales_prices_list = [args.hydrogen_price1, args.hydrogen_price2, args.hydrogen_price3,args.hydrogen_price4, args.hydrogen_price5]
+    H2_sales_prices_list = args.hydrogen_prices_list
+    sensitivity_scenario_input = args.sensitivity_scenario
     simulation_horizon_number_of_years = args.simulation_years
 
     # Create and start worker processes
     start_time = time.perf_counter()
     processes = []
     for H2_price in H2_sales_prices_list:
-        p = multiprocessing.Process(target=experiment_function, args=(H2_price,simulation_horizon_number_of_years))
+        H2_price = float(H2_price)
+        p = multiprocessing.Process(target=experiment_function, args=(H2_price,sensitivity_scenario_input,simulation_horizon_number_of_years))
         processes.append(p)
         p.start()
 
