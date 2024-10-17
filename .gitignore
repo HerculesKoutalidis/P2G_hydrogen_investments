@@ -23,3 +23,7 @@ dist/
 
 # Results
 Results/
+
+# Excel files
+Data/parameters_guide_new_obj.xlsx
+Data/Computations.xlsx
