@@ -23,7 +23,8 @@ dist/
 
 # Results
 Results/
+oil refinery models/
 
 # Excel files
-Data/parameters_guide_new_obj.xlsx
-Data/Computations.xlsx
+Data/parameters_guide_new_obj.xlsx/
+Data/Computations.xlsx/
