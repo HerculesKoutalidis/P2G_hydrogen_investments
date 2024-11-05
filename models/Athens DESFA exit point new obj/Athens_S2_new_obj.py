@@ -39,21 +39,21 @@ def experiment_function(H2_selling_price_per_kg, sensitivity_scenario,simulation
     #%%######################### NETWORK PARAMETERS #######################
     ####### EXPERIMENT PARAMETERS SECTION HERE ###########################
     #Fill the values of the parameters below, according to the "parameters guide xlsx" file
-    wind_spec_capex_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
-    wind_fixed_opex_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
-    wind_marginal_dict = {'main':53, 'LE1':50.35, 'LE2':47.7, 'LE3':39.75} 
-    solar_spec_capex_dict =  {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
-    solar_fixed_opex_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
-    solar_marginal_dict =  {'main':31.8, 'LE1':30.21, 'LE2':28.62, 'LE3':23.85} 
-    H2_storage_spec_capex_dict = {'main':14500, 'LE1':13775, 'LE2':13050, 'LE3':11600} 
-    H2_storage_marginal_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
-    H2_storage_fixed_opex_dict = {'main':290, 'LE1':275.5, 'LE2':261, 'LE3':232} 
-    NG_marginal_cost_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0} 
-    electrolysis_efficiency_dict =  {'main':0.756, 'LE1':0.79, 'LE2':0.82, 'LE3':0.85} 
-    electrolysis_spec_capex_dict = {'main':924000, 'LE1':877800, 'LE2':831600, 'LE3':600600}   
-    electrolysis_fixed_opex_dict = {'main':18480, 'LE1':17556, 'LE2':16632, 'LE3':12012} 
-    electrolysis_var_opex_dict =   {'main':1.33, 'LE1':1.33, 'LE2':1.33, 'LE3':1.33} 
-    MHA_dict =  {'main':0.1, 'LE1':0.2, 'LE2':0.3, 'LE3':0.5}   #Max H2 admixture per volume ( 0 to 1) 
+    wind_spec_capex_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0, 'LE4':0, 'LE5':0, 'LE6':0} 
+    wind_fixed_opex_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0, 'LE4':0, 'LE5':0, 'LE6':0} 
+    wind_marginal_dict = {'main':53, 'LE1':50.35, 'LE2':47.7, 'LE3':39.75,'LE4':37.1,'LE5':37.1,'LE6':34.45} 
+    solar_spec_capex_dict =  {'main':0, 'LE1':0, 'LE2':0, 'LE3':0, 'LE4':0, 'LE5':0, 'LE6':0} 
+    solar_fixed_opex_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0, 'LE4':0, 'LE5':0, 'LE6':0} 
+    solar_marginal_dict =  {'main':31.8, 'LE1':30.21, 'LE2':28.62, 'LE3':23.85, 'LE4':22.26, 'LE5':22.26, 'LE6':20.67} 
+    H2_storage_spec_capex_dict = {'main':14500, 'LE1':13775, 'LE2':13050, 'LE3':11600,'LE4':10150,'LE5':10150,'LE6':10150} 
+    H2_storage_marginal_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0, 'LE4':0, 'LE5':0, 'LE6':0} 
+    H2_storage_fixed_opex_dict = {'main':290, 'LE1':275.5, 'LE2':261, 'LE3':232, 'LE4':203, 'LE5':203, 'LE6':203} 
+    NG_marginal_cost_dict = {'main':0, 'LE1':0, 'LE2':0, 'LE3':0, 'LE4':0, 'LE5':0, 'LE6':0} 
+    electrolysis_efficiency_dict =  {'main':0.756, 'LE1':0.79, 'LE2':0.82, 'LE3':0.85, 'LE4':0.85, 'LE5':0.85, 'LE6':0.85} 
+    electrolysis_spec_capex_dict = {'main':924000, 'LE1':877800, 'LE2':831600, 'LE3':600600,'LE4':554400,'LE5':554400,'LE6':554400}   
+    electrolysis_fixed_opex_dict = {'main':18480, 'LE1':17556, 'LE2':16632, 'LE3':12012, 'LE4':11088, 'LE5':11088, 'LE6':11088} 
+    electrolysis_var_opex_dict =   {'main':1.33, 'LE1':1.33, 'LE2':1.33, 'LE3':1.33, 'LE4':1.33, 'LE5':1.33, 'LE6':1.33} 
+    MHA_dict =  {'main':0.1, 'LE1':0.2, 'LE2':0.3, 'LE3':0.5, 'LE4':0.8, 'LE5':0.9, 'LE6':0.99999}   #Max H2 admixture per volume ( 0 to 1) 
 
 
     wind_spec_capex = wind_spec_capex_dict[sensitivity_scenario]  
@@ -101,7 +101,7 @@ def experiment_function(H2_selling_price_per_kg, sensitivity_scenario,simulation
     electrolysis_efficiency /= (1+BoP_electricity_consumption_pc) #effective electrolysis efficiency.
 
     #Selling prices data
-    LHV_H2,HHV_H2 = 0.03333, 0.03989  #LHV,HHV of H2 in MWh/kg H2
+    LHV_H2,HHV_H2 = 0.03333, 0.03939  #LHV,HHV of H2 in MWh/kg H2
     LHV_NG, HHV_NG = 0.0131, 0.01485  #LHV,HHV of NG in MWh/kg NG (a typical HHV ng is 14.49 kWh/kg)
     en_density_H2, en_density_ng = 3 , 10.167
     Mr_H2, Mr_ng = 2.01568 *1e-3, 17.47* 1e-3 # molar masses in kg per mol
